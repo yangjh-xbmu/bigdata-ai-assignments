@@ -216,3 +216,42 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ===== 课程作业专属规则 =====
+
+# 数据集与大文件（统一放 data/，大于 5MB 不入库）
+data/**/*.csv
+data/**/*.xlsx
+data/**/*.xls
+data/**/*.json
+data/**/*.parquet
+data/**/*.zip
+data/**/*.gz
+data/**/*.rar
+data/**/*.7z
+data/**/*.db
+data/**/*.sqlite
+data/**/*.sqlite3
+!data/.gitkeep
+
+# 模型权重文件
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.pkl
+*.joblib
+models/
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/output/
+
+# 作业输出图片（单独存放，按需提交）
+output/*.png
+output/*.jpg
+
+# 环境变量与密钥
+.env
+*.key
+
