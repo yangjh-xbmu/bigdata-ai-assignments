@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Skill 图解入门 · 学习资料</title>
+<style>
+  :root{
+    --ink:#262b33;
+    --ink-2:#5c6572;
+    --ink-3:#8b93a0;
+    --line:#cfd5dd;
+    --line-soft:#e4e8ee;
+    --paper:#ffffff;
+    --tint:#eef1f6;
+    --accent:#1d4e89;
+    --accent-soft:#e3ebf5;
+    --good:#2e7d57;
+    --bad:#b0432e;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:16px;line-height:1.7;
+  }
+  svg text{font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;}
+  .page{max-width:800px;margin:0 auto;padding:36px 24px 80px;}
+
+  header{padding:6px 0 18px;margin-bottom:8px;border-bottom:1px solid var(--line-soft);}
+  h1{font-size:25px;margin:0 0 10px;font-weight:750;letter-spacing:.01em;}
+  .tagline{font-size:15px;color:var(--ink-2);margin:0;}
+
+  /* 每个知识点：一句话标题 + 一张大图 + 一句图注 */
+  section.learn{margin:30px 0 8px;}
+  .lno{display:inline-block;font-family:"SF Mono",Consolas,monospace;font-size:12px;color:var(--accent);
+       border:1px solid var(--accent);border-radius:4px;padding:0 7px;margin-right:8px;letter-spacing:.04em;}
+  h3{font-size:18px;margin:0 0 4px;font-weight:700;display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
+  figure{margin:0;padding:6px 0 0;}
+  figure svg{width:100%;height:auto;display:block;}
+  figcaption{
+    font-size:14px;color:var(--ink-2);background:var(--tint);
+    border-radius:8px;padding:7px 13px;margin:2px 0 0;max-width:78%;
+  }
+  .wrap{background:var(--tint);border:1px solid var(--line-soft);border-radius:14px;padding:10px 6px 2px;}
+  .mini{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);padding:8px 4px 6px;}
+  .mini span{padding:3px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;}
+  .mini b{color:var(--ink);}
+
+  /* 图标色 */
+  .g-stroke{stroke:#9aa3b0;fill:none;}
+  .g-fill{fill:#e8ecf2;}
+  .a-fill{fill:#1d4e89;}
+  .a-soft{fill:#dbe6f2;}
+  .ink-f{fill:#3c4450;}
+  .ink-grey{fill:#7c8491;}
+
+  /* 自测 */
+  .quiz-head{margin-top:46px;padding-bottom:10px;border-bottom:1px solid var(--line-soft);}
+  .level{margin:26px 0 8px;padding:16px 18px 6px;border:1px solid var(--line);border-radius:12px;}
+  .level>h4{margin:0 0 2px;font-size:16px;display:flex;align-items:baseline;gap:8px;}
+  .lvl-sub{font-size:13.5px;color:var(--ink-3);margin:2px 0 8px;}
+  .lvl-score{font-size:13px;color:var(--ink-2);margin:0 0 6px;}  .lvl-score b{color:var(--ink);}
+  .q{border-top:1px dashed var(--line);padding:14px 0 2px;}
+  .q-head{font-size:14.5px;margin:0 0 2px;color:var(--ink-2);}
+  .q-type{font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 6px;margin-right:8px;font-weight:600;}
+  .q-stem{font-size:15px;margin:4px 0 8px;}
+  .opts{list-style:none;margin:0;padding:0;}
+  .opts li{display:flex;gap:9px;align-items:flex-start;padding:4px 8px;border:1px solid transparent;border-radius:8px;}
+  .opts li:hover{background:var(--tint);}
+  .opts label{flex:1;cursor:pointer;display:flex;gap:9px;font-size:14.5px;}
+  .opts input{margin-top:5px;accent-color:var(--accent);}
+  .ltr{font-family:"SF Mono",Consolas,monospace;font-weight:700;color:var(--ink-2);min-width:16px;}
+  .q-btns{display:flex;gap:8px;margin:8px 0;}
+  button{font-family:inherit;font-size:13px;padding:4px 15px;border-radius:7px;cursor:pointer;
+         background:#fff;color:var(--accent);border:1px solid var(--accent);}
+  button:hover{background:var(--accent-soft);}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  button.primary:hover{background:#163c69;}
+  button.reset{border-color:var(--line);color:var(--ink-3);}
+  .result{display:none;margin:6px 0 0;padding:8px 13px;border-radius:8px;font-size:14px;}
+  .result.correct{display:block;background:#edf5f0;border:1px solid #cfe2d6;color:var(--good);}
+  .result.wrong{display:block;background:#faf0ed;border:1px solid #ead2cb;color:var(--bad);}
+  .result.peek{display:block;background:var(--tint);border:1px solid var(--line);color:var(--ink-2);}
+  .result .why{margin-top:6px;color:var(--ink-2);border-top:1px dashed var(--line);padding-top:6px;}
+  .result .why b{color:var(--ink);}
+  .summary{margin:20px 0 0;padding:14px 18px;border:1px solid var(--accent);border-radius:12px;display:none;}
+  .summary.show{display:block;}
+  .summary h4{margin:0 0 6px;}
+  .summary p{margin:4px 0;font-size:14px;}
+  /* —— 一题一题出 —— */
+  .level{display:none;}
+  .level.on{display:block;}
+  .q{display:none;}
+  .q.active{display:block;animation:qi .18s ease;}
+  @keyframes qi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .qnav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 0 4px;padding:8px 12px;
+        background:var(--tint);border:1px solid var(--line-soft);border-radius:10px;}
+  .qnav button{white-space:nowrap;}
+  .qnav button:disabled{opacity:.4;cursor:not-allowed;}
+  .qnav button:disabled:hover{background:#fff;color:var(--accent);}
+  .qpos{font-size:13px;color:var(--ink-2);text-align:center;}
+  .qpos b{color:var(--ink);}
+  .btn-quiet{border:none;background:none;color:var(--ink-3);padding:4px 6px;font-size:12.5px;}
+  .btn-quiet:hover{background:var(--bg-soft, #f2f5f9);}
+  footer{margin-top:40px;color:var(--ink-3);font-size:12.5px;border-top:1px solid var(--line-soft);padding-top:12px;}
+  @media print{ .q-btns{display:none;} .result{display:block;background:#fff;} }
+  @media (max-width:560px){ h1{font-size:21px;} figcaption{max-width:100%;} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Agent Skill 是什么？看图就懂</h1>
+    <p class="tagline">一小段图解 + 分级小测试。适合已经把「智能体会调用工具」弄明白的学习者。</p>
+  </header>
+
+  <!-- ================= 1 ================= -->
+  <section class="learn">
+    <h3><span class="lno">01</span>它很聪明，可不一定「会干你的活」</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 200" role="img" aria-label="聪明但不了解具体工作流程的对比图">
+        <!-- 帧1 -->
+        <rect x="20" y="16" width="200" height="150" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <rect x="98" y="36" width="56" height="56" rx="10" fill="#e8ecf2" stroke="#9aa3b0" stroke-width="2"/>
+        <rect x="96" y="34" width="8" height="6" fill="#9aa3b0"/>
+        <rect x="116" y="34" width="8" height="6" fill="#9aa3b0"/>
+        <rect x="136" y="34" width="8" height="6" fill="#9aa3b0"/>
+        <rect x="96" y="92" width="8" height="6" fill="#9aa3b0"/>
+        <rect x="116" y="92" width="8" height="6" fill="#9aa3b0"/>
+        <rect x="136" y="92" width="8" height="6" fill="#9aa3b0"/>
+        <rect x="112" y="56" width="16" height="16" rx="3" fill="#1d4e89"/>
+        <circle cx="178" cy="34" r="9" fill="none" stroke="#1d4e89" stroke-width="2"/>
+        <line x1="178" y1="18" x2="178" y2="24" stroke="#1d4e89" stroke-width="2"/>
+        <line x1="178" y1="44" x2="178" y2="50" stroke="#1d4e89" stroke-width="2"/>
+        <line x1="162" y1="34" x2="168" y2="34" stroke="#1d4e89" stroke-width="2"/>
+        <line x1="188" y1="34" x2="194" y2="34" stroke="#1d4e89" stroke-width="2"/>
+        <text x="120" y="138" text-anchor="middle" font-size="15" fill="#262b33" font-weight="600">聪明的 Agent</text>
+        <text x="120" y="157" text-anchor="middle" font-size="12.5" fill="#7c8491">懂很多知识</text>
+        <!-- 箭头1 -->
+        <g stroke="#1d4e89" stroke-width="2.5" fill="#1d4e89">
+          <line x1="228" y1="92" x2="260" y2="92"/>
+          <path d="M260 92 l-10 -6 v12 z"/>
+        </g>
+        <!-- 帧2 -->
+        <rect x="270" y="16" width="200" height="150" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <rect x="366" y="36" width="56" height="70" rx="5" fill="#f2f5f9" stroke="#9aa3b0" stroke-width="2"/>
+        <path d="M366 41 h28 l28 0 v65" fill="none" stroke="#9aa3b0" stroke-width="2"/>
+        <rect x="374" y="56" width="40" height="3.5" rx="1.7" fill="#c3cad4"/>
+        <rect x="374" y="66" width="40" height="3.5" rx="1.7" fill="#c3cad4"/>
+        <rect x="374" y="76" width="26" height="3.5" rx="1.7" fill="#c3cad4"/>
+        <text x="370" y="140" text-anchor="middle" font-size="15" fill="#262b33" font-weight="600">来了个任务</text>
+        <text x="370" y="159" text-anchor="middle" font-size="12.5" fill="#7c8491">做报表 · 做PPT · 审单据</text>
+        <!-- 箭头2 -->
+        <g stroke="#1d4e89" stroke-width="2.5" fill="#1d4e89">
+          <line x1="478" y1="92" x2="510" y2="92"/>
+          <path d="M510 92 l-10 -6 v12 z"/>
+        </g>
+        <!-- 帧3 -->
+        <rect x="520" y="16" width="200" height="150" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <rect x="598" y="36" width="56" height="56" rx="10" fill="#e8ecf2" stroke="#9aa3b0" stroke-width="2"/>
+        <rect x="612" y="56" width="16" height="16" rx="3" fill="#b7bec9"/>
+        <text x="668" y="46" text-anchor="middle" font-size="22" fill="#b0432e" font-weight="700">?</text>
+        <rect x="548" y="108" width="18" height="30" rx="3" fill="#d6dbe2"/>
+        <rect x="572" y="118" width="18" height="20" rx="3" fill="#d6dbe2"/>
+        <rect x="596" y="100" width="18" height="38" rx="3" fill="#d6dbe2"/>
+        <rect x="620" y="112" width="18" height="26" rx="3" fill="#d6dbe2"/>
+        <rect x="644" y="122" width="18" height="16" rx="3" fill="#d6dbe2"/>
+        <text x="620" y="161" text-anchor="middle" font-size="13.5" fill="#5c6572">不知道你家的格式 → 乱</text>
+      </svg>
+      <div class="mini">
+        <span>它缺的不是<b>知识</b></span>
+        <span>缺的是<b>「你家的工作做法」</b></span>
+        <span>做法每次重讲一次，又累又容易不一样</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 2 ================= -->
+  <section class="learn">
+    <h3><span class="lno">02</span>Skill = 一个文件夹：做法 + 小工具 + 资料</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 250" role="img" aria-label="Skill 文件夹的结构图">
+        <!-- 大文件夹（虚线容器） -->
+        <rect x="18" y="18" width="724" height="196" rx="16" fill="#f2f5f9" stroke="#b9c2ce" stroke-width="1.5" stroke-dasharray="7 6"/>
+        <!-- 标签 -->
+        <rect x="34" y="8" width="170" height="26" rx="13" fill="#1d4e89"/>
+        <text x="119" y="26" text-anchor="middle" font-size="14" fill="#fff" font-weight="600">一个文件夹 = Skill</text>
+        <text x="719" y="27" text-anchor="end" font-size="12.5" fill="#7c8491">可以放进 Git / 发给同事</text>
+
+        <!-- 第1格：封面卡 -->
+        <rect x="48" y="56" width="212" height="126" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <rect x="66" y="72" width="46" height="30" rx="4" fill="#fff" stroke="#9aa3b0" stroke-width="1.6"/>
+        <rect x="71" y="78" width="24" height="2.6" rx="1.3" fill="#c3cad4"/>
+        <rect x="71" y="85" width="17" height="2.6" rx="1.3" fill="#c3cad4"/>
+        <text x="154" y="86" font-size="14.5" fill="#262b33" font-weight="600">SKILL.md 封面卡</text>
+        <text x="154" y="106" font-size="12.5" fill="#5c6572">上面只写两行：</text>
+        <text x="154" y="123" font-size="12.5" fill="#5c6572">「名字」＋「什么时候用它」</text>
+        <rect x="66" y="146" width="176" height="22" rx="6" fill="#e3ebf5"/>
+        <text x="154" y="161" text-anchor="middle" font-size="12" fill="#1d4e89">机器人靠这两行找到它</text>
+
+        <!-- 第2格：小工具 -->
+        <rect x="284" y="56" width="196" height="126" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <g transform="translate(318,84)">
+          <circle r="17" fill="none" stroke="#9aa3b0" stroke-width="2.4"/>
+          <circle r="6" fill="#9aa3b0"/>
+          <line x1="-17" y1="0" x2="-24" y2="0" stroke="#9aa3b0" stroke-width="2.4"/>
+          <line x1="17" y1="0" x2="24" y2="0" stroke="#9aa3b0" stroke-width="2.4"/>
+          <line x1="0" y1="-17" x2="0" y2="-24" stroke="#9aa3b0" stroke-width="2.4"/>
+          <line x1="0" y1="17" x2="0" y2="24" stroke="#9aa3b0" stroke-width="2.4"/>
+        </g>
+        <text x="382" y="92" font-size="14.5" fill="#262b33" font-weight="600">scripts 小工具</text>
+        <text x="382" y="112" font-size="12.5" fill="#5c6572">一段段现成代码</text>
+        <rect x="300" y="146" width="164" height="22" rx="6" fill="#e3ebf5"/>
+        <text x="382" y="161" text-anchor="middle" font-size="12" fill="#1d4e89">一按就完成：快 · 准</text>
+
+        <!-- 第3格：资料 -->
+        <rect x="504" y="56" width="220" height="126" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <rect x="524" y="74" width="30" height="38" rx="3" fill="#fff" stroke="#9aa3b0" stroke-width="1.6"/>
+        <path d="M524 79 h30" stroke="#9aa3b0" stroke-width="1.6"/>
+        <rect x="530" y="86" width="18" height="2.6" rx="1.3" fill="#c3cad4"/>
+        <rect x="530" y="93" width="12" height="2.6" rx="1.3" fill="#c3cad4"/>
+        <text x="574" y="92" font-size="14.5" fill="#262b33" font-weight="600">references / assets</text>
+        <text x="574" y="112" font-size="12.5" fill="#5c6572">模板 · 细则 · 大资料</text>
+        <rect x="520" y="146" width="188" height="22" rx="6" fill="#e3ebf5"/>
+        <text x="614" y="161" text-anchor="middle" font-size="12" fill="#1d4e89">用到哪页，翻哪页</text>
+      </svg>
+      <div class="mini">
+        <span>像给新同事的<b>入职手册</b></span>
+        <span>不用背下全书，<b>需要时翻对应章节</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 3 ================= -->
+  <section class="learn">
+    <h3><span class="lno">03</span>关键机制：需要多少，就读多少（渐进式披露）</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 260" role="img" aria-label="渐进式披露三层加载示意图">
+        <!-- 右侧大脑窗口 -->
+        <rect x="548" y="40" width="180" height="188" rx="14" fill="#f2f5f9" stroke="#b9c2ce" stroke-width="1.5" stroke-dasharray="7 6"/>
+        <text x="638" y="66" text-anchor="middle" font-size="14" fill="#5c6572" font-weight="600">Agent 的「大脑」</text>
+        <text x="638" y="84" text-anchor="middle" font-size="11.5" fill="#8b93a0">同一时刻只装很少内容</text>
+        <rect x="566" y="100" width="144" height="26" rx="8" fill="#1d4e89"/>
+        <text x="638" y="117" text-anchor="middle" font-size="11.5" fill="#fff">一小行：封面的名字</text>
+        <text x="638" y="160" text-anchor="middle" font-size="11.5" fill="#8b93a0">其余待在抽屉里</text>
+        <text x="638" y="176" text-anchor="middle" font-size="11.5" fill="#8b93a0">不占大脑空间</text>
+        <path d="M566 140 h16 v-8 h16 M566 196 h16 v-8 h16" fill="none"/>
+        <rect x="598" y="140" width="112" height="22" rx="6" fill="#dbe6f2"/>
+        <text x="654" y="155" text-anchor="middle" font-size="11.5" fill="#1d4e89">用到才拉进来</text>
+        <rect x="598" y="188" width="112" height="22" rx="6" fill="#dbe6f2"/>
+        <text x="654" y="203" text-anchor="middle" font-size="11.5" fill="#1d4e89">用完可以放回去</text>
+
+        <!-- 左侧三个抽屉层 -->
+        <g>
+          <rect x="40" y="44" width="470" height="52" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+          <rect x="56" y="56" width="30" height="20" rx="3" fill="#fff" stroke="#9aa3b0" stroke-width="1.4"/>
+          <rect x="60" y="61" width="14" height="2.2" rx="1.1" fill="#c3cad4"/>
+          <text x="102" y="74" font-size="14" fill="#262b33" font-weight="600">第1层 · 封面卡</text>
+          <text x="102" y="91" font-size="12" fill="#7c8491">只装「名字 + 一句话介绍」</text>
+          <rect x="356" y="59" width="138" height="24" rx="12" fill="#e3ebf5"/>
+          <text x="425" y="75" text-anchor="middle" font-size="12" fill="#1d4e89">开机就装 · 极小</text>
+        </g>
+        <g>
+          <rect x="40" y="110" width="470" height="62" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+          <rect x="56" y="122" width="30" height="26" rx="3" fill="#fff" stroke="#9aa3b0" stroke-width="1.4"/>
+          <path d="M60 132 h22 M60 140 h16" stroke="#c3cad4" stroke-width="2.2" stroke-linecap="round"/>
+          <text x="102" y="141" font-size="14" fill="#262b33" font-weight="600">第2层 · 正文做法</text>
+          <text x="102" y="159" font-size="12" fill="#7c8491">先看封面发现它，任务对上了才翻开读</text>
+          <rect x="356" y="129" width="138" height="24" rx="12" fill="#dbe6f2"/>
+          <text x="425" y="145" text-anchor="middle" font-size="12" fill="#1d4e89">说中了才读</text>
+        </g>
+        <g>
+          <rect x="40" y="186" width="470" height="42" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+          <rect x="56" y="196" width="12" height="12" rx="2" fill="#9aa3b0"/>
+          <rect x="70" y="196" width="12" height="12" rx="2" fill="#9aa3b0"/>
+          <rect x="56" y="210" width="12" height="12" rx="2" fill="#9aa3b0"/>
+          <text x="102" y="207" font-size="14" fill="#262b33" font-weight="600">第3层 · 小工具 &amp; 资料</text>
+          <text x="102" y="224" font-size="12" fill="#7c8491">程序自己跑 · 资源按需取（源码不进大脑）</text>
+          <rect x="356" y="198" width="138" height="24" rx="12" fill="#dbe6f2"/>
+          <text x="425" y="214" text-anchor="middle" font-size="12" fill="#1d4e89">需要才打开</text>
+        </g>
+        <text x="40" y="258" font-size="12.5" fill="#8b93a0">装再多的 Skill，平时也只有「封面」占地方 —— 所以一次能装很多个。</text>
+      </svg>
+      <div class="mini">
+        <span>第1层 <b>极小</b></span>
+        <span>第2层 <b>几千字内</b></span>
+        <span>第3层 <b>平时为 0</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 4 ================= -->
+  <section class="learn">
+    <h3><span class="lno">04</span>它干活时，一步步怎么来</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 220" role="img" aria-label="一次任务的四步流程图">
+        <!-- 步骤1 -->
+        <rect x="16" y="24" width="160" height="160" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <text x="96" y="46" text-anchor="middle" font-size="13" fill="#1d4e89" font-weight="700">① 开机</text>
+        <rect x="40" y="60" width="112" height="16" rx="5" fill="#fff" stroke="#9aa3b0"/>
+        <text x="96" y="72" text-anchor="middle" font-size="10" fill="#7c8491">PPT书</text>
+        <rect x="40" y="82" width="112" height="16" rx="5" fill="#fff" stroke="#9aa3b0"/>
+        <text x="96" y="94" text-anchor="middle" font-size="10" fill="#7c8491">报表书</text>
+        <rect x="40" y="104" width="112" height="16" rx="5" fill="#fff" stroke="#9aa3b0"/>
+        <text x="96" y="116" text-anchor="middle" font-size="10" fill="#7c8491">纪要书</text>
+        <rect x="40" y="126" width="112" height="16" rx="5" fill="#fff" stroke="#9aa3b0"/>
+        <text x="96" y="138" text-anchor="middle" font-size="10" fill="#7c8491">发票书</text>
+        <text x="96" y="170" text-anchor="middle" font-size="12.5" fill="#5c6572">大脑里只有「封面们」</text>
+        <!-- 箭头 -->
+        <g stroke="#1d4e89" stroke-width="2.5" fill="#1d4e89">
+          <line x1="182" y1="104" x2="210" y2="104"/><path d="M210 104 l-9 -5 v10 z"/>
+        </g>
+        <!-- 步骤2 -->
+        <rect x="218" y="24" width="160" height="160" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <text x="298" y="46" text-anchor="middle" font-size="13" fill="#1d4e89" font-weight="700">② 来活儿</text>
+        <rect x="250" y="70" width="96" height="58" rx="14" fill="#f2f5f9" stroke="#9aa3b0"/>
+        <path d="M270 70 v-14 h14 M296 56 l-10 6 10 6" fill="none" stroke="#9aa3b0" stroke-width="2"/>
+        <text x="298" y="148" text-anchor="middle" font-size="13" fill="#262b33">「整理成</text>
+        <text x="298" y="165" text-anchor="middle" font-size="13" fill="#262b33">公司格式的会议纪要」</text>
+        <!-- 箭头 -->
+        <g stroke="#1d4e89" stroke-width="2.5" fill="#1d4e89">
+          <line x1="384" y1="104" x2="412" y2="104"/><path d="M412 104 l-9 -5 v10 z"/>
+        </g>
+        <!-- 步骤3 -->
+        <rect x="420" y="24" width="160" height="160" rx="12" fill="#eef3fa" stroke="#1d4e89" stroke-width="2"/>
+        <text x="500" y="46" text-anchor="middle" font-size="13" fill="#1d4e89" font-weight="700">③ 找到并翻开</text>
+        <rect x="446" y="62" width="108" height="24" rx="6" fill="#1d4e89"/>
+        <text x="500" y="78" text-anchor="middle" font-size="12" fill="#fff">「纪要书」封面命中</text>
+        <rect x="452" y="98" width="96" height="12" rx="3" fill="#c9d8ea"/>
+        <rect x="452" y="116" width="96" height="12" rx="3" fill="#c9d8ea"/>
+        <rect x="452" y="134" width="64" height="12" rx="3" fill="#c9d8ea"/>
+        <text x="500" y="172" text-anchor="middle" font-size="12.5" fill="#5c6572">按里面的步骤做</text>
+        <!-- 箭头 -->
+        <g stroke="#1d4e89" stroke-width="2.5" fill="#1d4e89">
+          <line x1="586" y1="104" x2="614" y2="104"/><path d="M614 104 l-9 -5 v10 z"/>
+        </g>
+        <!-- 步骤4 -->
+        <rect x="622" y="24" width="122" height="160" rx="12" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <text x="683" y="46" text-anchor="middle" font-size="13" fill="#1d4e89" font-weight="700">④ 交卷</text>
+        <circle cx="683" cy="86" r="18" fill="none" stroke="#9aa3b0" stroke-width="2"/>
+        <path d="M675 86 l6 6 11 -12" fill="none" stroke="#2e7d57" stroke-width="3"/>
+        <rect x="648" y="118" width="70" height="46" rx="5" fill="#f2f5f9" stroke="#9aa3b0"/>
+        <rect x="656" y="126" width="46" height="3.4" rx="1.7" fill="#c3cad4"/>
+        <rect x="656" y="135" width="36" height="3.4" rx="1.7" fill="#c3cad4"/>
+        <rect x="656" y="144" width="26" height="3.4" rx="1.7" fill="#c3cad4"/>
+        <text x="683" y="180" text-anchor="middle" font-size="12.5" fill="#5c6572">整齐的成品</text>
+      </svg>
+      <div class="mini">
+        <span>它<u>自己</u>判断何时用，不用你每次指路</span>
+        <span>中间要数据 → 伸手（Tool / MCP）去取</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 5 ================= -->
+  <section class="learn">
+    <h3><span class="lno">05</span>四样东西怎么分工，别混</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 270" role="img" aria-label="Prompt Tool MCP Skill 分工图">
+        <!-- 4 宫格 -->
+        <!-- Prompt -->
+        <rect x="24" y="24" width="344" height="96" rx="14" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <path d="M64 76 l14 -18 h10 l6 12 10 -12 h10 l-4 10 M64 76 h-2 M64 76 c-10 0 -10 22 0 22 M64 76 v6 M60 88 h8" fill="none" stroke="#7c8491" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="212" y="60" font-size="15" fill="#262b33" font-weight="700">System Prompt · 脑子里的规矩</text>
+        <text x="212" y="82" font-size="13" fill="#5c6572">每时每刻守纪律：安全、口吻、底线</text>
+        <text x="212" y="102" font-size="13" fill="#8b93a0">「永远别泄露密码」这种话放这里</text>
+        <!-- Tool / MCP -->
+        <rect x="392" y="24" width="344" height="96" rx="14" fill="#fff" stroke="#cfd5dd" stroke-width="1.5"/>
+        <circle cx="436" cy="72" r="22" fill="none" stroke="#7c8491" stroke-width="2.4"/>
+        <ellipse cx="436" cy="72" rx="9" ry="22" fill="none" stroke="#7c8491" stroke-width="2"/>
+        <line x1="414" y1="72" x2="458" y2="72" stroke="#7c8491" stroke-width="2"/>
+        <text x="580" y="60" font-size="15" fill="#262b33" font-weight="700">Tool / MCP · 伸出去的手</text>
+        <text x="580" y="82" font-size="13" fill="#5c6572">与外面的世界打交道：查天气、发邮件、下单</text>
+        <text x="580" y="102" font-size="13" fill="#8b93a0">MCP 只是「统一插座」，负责把各种系统接进来</text>
+        <!-- Skill -->
+        <rect x="24" y="136" width="712" height="110" rx="14" fill="#eef3fa" stroke="#1d4e89" stroke-width="1.8"/>
+        <rect x="60" y="160" width="40" height="28" rx="3" fill="#fff" stroke="#1d4e89" stroke-width="1.6"/>
+        <rect x="66" y="166" width="20" height="2.6" rx="1.3" fill="#c3cad4"/>
+        <text x="60" y="218" font-size="15" fill="#1d4e89" font-weight="700">Skill · 手上的做法书</text>
+        <text x="60" y="236" font-size="13" fill="#3c4450">把「怎么把活干得专业」写成书：懂你家的流程、格式、习惯；需要多少读多少</text>
+        <text x="712" y="164" text-anchor="end" font-size="12.5" fill="#5c6572">一句话记法：</text>
+        <text x="712" y="184" text-anchor="end" font-size="12.5" fill="#1d4e89" font-weight="600">Tool 负责「做一件事」</text>
+        <text x="712" y="202" text-anchor="end" font-size="12.5" fill="#1d4e89" font-weight="600">Skill 负责「把事做得专业」</text>
+      </svg>
+      <div class="mini">
+        <span>Skill <b>不是</b>更长的一段提示</span>
+        <span>Skill <b>不是</b>工具本身</span>
+        <span>常组合：书中流程 → 伸手调数据</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 6 ================= -->
+  <section class="learn">
+    <h3><span class="lno">06</span>一本册子到处能用（但陌生人的书要先检查）</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 190" role="img" aria-label="开放格式复用与安全提示">
+        <!-- 左：文件夹 -->
+        <rect x="30" y="40" width="150" height="110" rx="10" fill="#fff" stroke="#9aa3b0" stroke-width="2"/>
+        <path d="M30 60 a10 10 0 0 1 10 -10 h44 l12 16 h84" fill="none" stroke="#9aa3b0" stroke-width="2"/>
+        <rect x="52" y="84" width="34" height="24" rx="3" fill="#fff" stroke="#1d4e89" stroke-width="1.6"/>
+        <rect x="58" y="90" width="18" height="2.4" rx="1.2" fill="#c3cad4"/>
+        <text x="105" y="101" font-size="14" fill="#262b33" font-weight="600">同一本</text>
+        <text x="105" y="121" font-size="14" fill="#262b33" font-weight="600">Skill 册子</text>
+        <!-- 三条箭头到三个机器 -->
+        <path d="M200 70 C 250 70 250 70 292 70" stroke="#1d4e89" stroke-width="2.5" fill="none"/>
+        <path d="M200 110 C 250 110 250 110 292 110" stroke="#1d4e89" stroke-width="2.5" fill="none"/>
+        <path d="M200 150 C 250 150 250 150 292 150" stroke="#1d4e89" stroke-width="2.5" fill="none"/>
+        <!-- 三个通用产品框 -->
+        <rect x="300" y="52" width="130" height="38" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="365" y="76" text-anchor="middle" font-size="13.5" fill="#3c4450">机器人 甲</text>
+        <rect x="440" y="52" width="130" height="38" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="505" y="76" text-anchor="middle" font-size="13.5" fill="#3c4450">机器人 乙</text>
+        <rect x="580" y="52" width="130" height="38" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="645" y="76" text-anchor="middle" font-size="13.5" fill="#3c4450">机器人 丙</text>
+        <text x="380" y="130" font-size="13" fill="#5c6572">不同家的产品都认同一套</text>
+        <text x="380" y="149" font-size="13" fill="#5c6572">开放格式 → 一次写成，处处复用</text>
+        <!-- 锁 -->
+        <rect x="556" y="118" width="120" height="42" rx="10" fill="#faf0ed" stroke="#d9b7ad"/>
+        <path d="M586 138 v-8 a8 8 0 0 1 16 0 v8" fill="none" stroke="#b0432e" stroke-width="2.6"/>
+        <rect x="578" y="138" width="32" height="22" rx="4" fill="#fff" stroke="#b0432e" stroke-width="2"/>
+        <circle cx="594" cy="149" r="3.2" fill="#b0432e"/>
+        <text x="620" y="147" font-size="12.5" fill="#5c6572">外面捡的册子</text>
+        <text x="620" y="163" font-size="12.5" fill="#b0432e" font-weight="600">先查代码再打开</text>
+      </svg>
+      <div class="mini">
+        <span>Skill 现在已是<b>开放格式</b>，多家产品通用</span>
+        <span>册子能指挥机器人做事 → <b>恶意册子会闯祸</b>，只信来源干净的</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 自测 ================= -->
+  <section id="quiz">
+    <h3 class="quiz-head">分级自测：检验你「真懂了」还是「看着像懂了」</h3>
+    <p class="lvl-sub" style="color:var(--ink-3);font-size:14px;">三级递进：先问事实 → 再考分辨 → 最后考你现场判断。每题点「检查」看对错与一句话解析。</p>
+
+    <div class="level" id="lvl1">
+      <h4>第 1 级 · 概念 <span class="lvl-sub" style="font-weight:400;">考基本事实</span></h4>
+      <p class="lvl-score">进度：已检 <b class="ck">0</b>/4 · 答对 <b class="ok">0</b></p>
+
+      <div class="q" data-answer="B">
+        <p class="q-stem"><span class="q-type">单选</span>1. Agent Skill 本质上是什么？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q1"><span class="ltr">A</span><span>一段每轮都要整体读入的超长提示词</span></label></li>
+          <li><label><input type="radio" name="q1"><span class="ltr">B</span><span>一个文件夹：SKILL.md + 可选的小工具与资料</span></label></li>
+          <li><label><input type="radio" name="q1"><span class="ltr">C</span><span>重新训练模型权重的一种方法</span></label></li>
+          <li><label><input type="radio" name="q1"><span class="ltr">D</span><span>一个远程的专用 API 接口</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+
+      <div class="q" data-answer="B">
+        <p class="q-stem"><span class="q-type">单选</span>2. SKILL.md 顶部「封面」两行里，哪两个字段<b>必填</b>？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q2"><span class="ltr">A</span><span>name 和 version</span></label></li>
+          <li><label><input type="radio" name="q2"><span class="ltr">B</span><span>name 和 description</span></label></li>
+          <li><label><input type="radio" name="q2"><span class="ltr">C</span><span>title 和 tags</span></label></li>
+          <li><label><input type="radio" name="q2"><span class="ltr">D</span><span>author 和 date</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+
+      <div class="q" data-answer="B">
+        <p class="q-stem"><span class="q-type">单选</span>3. 「需要多少，就读多少」指下面的哪种行为？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q3"><span class="ltr">A</span><span>开机就把每本 Skill 从头到尾读一遍</span></label></li>
+          <li><label><input type="radio" name="q3"><span class="ltr">B</span><span>平时只装封面，任务对上了才翻开正文，用到工具/资料再取</span></label></li>
+          <li><label><input type="radio" name="q3"><span class="ltr">C</span><span>按文件大小从大到小依次加载</span></label></li>
+          <li><label><input type="radio" name="q3"><span class="ltr">D</span><span>一个文件夹只允许放一个文件</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+
+      <div class="q" data-answer="A">
+        <p class="q-stem"><span class="q-type">判断</span>4. Skill 里的小工具（脚本）跑起来时，代码本身不会塞进 Agent 的「大脑」，它只看到运行结果。对还是错？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q4"><span class="ltr">A</span><span>对</span></label></li>
+          <li><label><input type="radio" name="q4"><span class="ltr">B</span><span>错，代码必须整段读进大脑</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <div class="level" id="lvl2">
+      <h4>第 2 级 · 辨析 <span class="lvl-sub" style="font-weight:400;">考分辨与机制</span></h4>
+      <p class="lvl-score">进度：已检 <b class="ck">0</b>/4 · 答对 <b class="ok">0</b></p>
+
+      <div class="q" data-answer="B">
+        <p class="q-stem"><span class="q-type">单选</span>5. Skill 和「写一段很长的系统提示」比，关键差别是？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q5"><span class="ltr">A</span><span>没差别，只是换个地方放文字</span></label></li>
+          <li><label><input type="radio" name="q5"><span class="ltr">B</span><span>Skill 用到才加载、可进版本库、多家产品通用；长提示每轮都占大脑、靠复制粘贴迟早走样</span></label></li>
+          <li><label><input type="radio" name="q5"><span class="ltr">C</span><span>长提示能力更强，Skill 没有优势</span></label></li>
+          <li><label><input type="radio" name="q5"><span class="ltr">D</span><span>Skill 只有某一家厂商能用</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+
+      <div class="q" data-answer="AB">
+        <p class="q-stem"><span class="q-type">多选</span>6. 下面哪两种情况，说明「该用 Tool / MCP，而不是 Skill」？</p>
+        <ul class="opts">
+          <li><label><input type="checkbox" name="q6"><span class="ltr">A</span><span>要实时看外面的状态：现在几点、库里有几件</span></label></li>
+          <li><label><input type="checkbox" name="q6"><span class="ltr">B</span><span>要真的动手改变世界：下单、发信、转账</span></label></li>
+          <li><label><input type="checkbox" name="q6"><span class="ltr">C</span><span>一套很稳定的内部流程，想每次都一模一样</span></label></li>
+          <li><label><input type="checkbox" name="q6"><span class="ltr">D</span><span>要确定性计算：把一万行数据排序</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+
+      <div class="q" data-answer="A">
+        <p class="q-stem"><span class="q-type">单选</span>7. 团队把「按品牌规范做 PPT」做成 Skill，并把套模板、换样式的活交给 scripts/ 里的小程序。为什么这么设计？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q7"><span class="ltr">A</span><span>程序结果恒定、又快又准，且代码不长期占大脑</span></label></li>
+          <li><label><input type="radio" name="q7"><span class="ltr">B</span><span>让程序完全替掉 Agent，不再需要任何说明</span></label></li>
+          <li><label><input type="radio" name="q7"><span class="ltr">C</span><span>把文件夹撑大，Git 好追踪</span></label></li>
+          <li><label><input type="radio" name="q7"><span class="ltr">D</span><span>让程序替系统提示承担所有安全限制</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+
+      <div class="q" data-answer="B">
+        <p class="q-stem"><span class="q-type">单选</span>8. 两个 Skill 的封面介绍：甲只写「Use for data stuff.」，乙写「洗凌乱的表格：去重、统一列名、补缺失值。用户上传乱表时用。」为什么乙会好用很多？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q8"><span class="ltr">A</span><span>甲字太少，系统会偷偷删掉它</span></label></li>
+          <li><label><input type="radio" name="q8"><span class="ltr">B</span><span>机器人先看封面才决定翻不翻书；写清「干什么 + 何时用」才瞄得准</span></label></li>
+          <li><label><input type="radio" name="q8"><span class="ltr">C</span><span>乙没中文字符，跑得更快</span></label></li>
+          <li><label><input type="radio" name="q8"><span class="ltr">D</span><span>乙的名字更长，优先级更高</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <div class="level" id="lvl3">
+      <h4>第 3 级 · 应用 <span class="lvl-sub" style="font-weight:400;">考现场判断</span></h4>
+      <p class="lvl-score">进度：已检 <b class="ck">0</b>/4 · 答对 <b class="ok">0</b></p>
+
+      <div class="q" data-answer="ABC">
+        <p class="q-stem"><span class="q-type">多选 · 场景</span>9. 财务部想让 Agent 每周出一套固定格式报表（清洗数据 → 合并 → 图表 → 套公司模板）。哪些做法是对的？</p>
+        <ul class="opts">
+          <li><label><input type="checkbox" name="q9"><span class="ltr">A</span><span>把稳定流程做成 Skill 并纳入版本管理</span></label></li>
+          <li><label><input type="checkbox" name="q9"><span class="ltr">B</span><span>Excel 的格式操作写成脚本，别让模型临场猜</span></label></li>
+          <li><label><input type="checkbox" name="q9"><span class="ltr">C</span><span>最新数据走 Tool / MCP 去系统里取，别写死在 Skill 里</span></label></li>
+          <li><label><input type="checkbox" name="q9"><span class="ltr">D</span><span>流程每周都在变、没有稳定步骤，所以特别适合做成 Skill</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+
+      <div class="q" data-answer="B">
+        <p class="q-stem"><span class="q-type">单选 · 场景</span>10. 陌生人发来一个 Skill 包，里面有份脚本会自动「curl」上传文件到某服务器。最稳妥的做法是？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q10"><span class="ltr">A</span><span>说明书写得专业，直接装进生产环境用</span></label></li>
+          <li><label><input type="radio" name="q10"><span class="ltr">B</span><span>先逐行查 SKILL.md 和全部脚本，确认没有偷传数据/越权，再放到隔离环境试</span></label></li>
+          <li><label><input type="radio" name="q10"><span class="ltr">C</span><span>删掉 SKILL.md，只留脚本继续用</span></label></li>
+          <li><label><input type="radio" name="q10"><span class="ltr">D</span><span>大厂出品就一定安全，不用看</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+
+      <div class="q" data-answer="B">
+        <p class="q-stem"><span class="q-type">单选 · 场景</span>11. 给「按公司格式整理会议纪要」做一个 Skill，文件该怎么摆？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q11"><span class="ltr">A</span><span>写一份超长 SKILL.md，把模板、细则全塞进去</span></label></li>
+          <li><label><input type="radio" name="q11"><span class="ltr">B</span><span>SKILL.md 只写主干；细则进 references/，生成 docx 的小程序进 scripts/</span></label></li>
+          <li><label><input type="radio" name="q11"><span class="ltr">C</span><span>所有东西丢进 assets/，让机器人自己猜</span></label></li>
+          <li><label><input type="radio" name="q11"><span class="ltr">D</span><span>不用 SKILL.md，传个 Word 模板就生效</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+
+      <div class="q" data-answer="A">
+        <p class="q-stem"><span class="q-type">单选 · 场景</span>12. 你想把「发票审核流程」沉淀下来，以后在不同厂商的多个 Agent 产品里都能用。怎么办？</p>
+        <ul class="opts">
+          <li><label><input type="radio" name="q12"><span class="ltr">A</span><span>按开放标准摆成 Skill（SKILL.md + 资源目录）并做版本管理，它已是多家通用的格式</span></label></li>
+          <li><label><input type="radio" name="q12"><span class="ltr">B</span><span>给每个产品各自粘一份系统提示</span></label></li>
+          <li><label><input type="radio" name="q12"><span class="ltr">C</span><span>等某厂商出「唯一官方格式」再说</span></label></li>
+          <li><label><input type="radio" name="q12"><span class="ltr">D</span><span>每次现场写一遍，用完就扔</span></label></li>
+        </ul>
+        <div class="q-btns"><button class="primary" type="button">检查</button><button class="show-ans" type="button">看答案</button></div>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <div class="qnav">
+      <button id="qreset" class="btn-quiet" type="button">↺ 重新开始</button>
+      <span class="qpos">第 <b id="qcur">1</b> / <b id="qtotal">12</b> 题</span>
+      <button id="qprev" type="button">← 上一题</button>
+      <button id="qnext" type="button">下一题 →</button>
+    </div>
+
+    <div class="summary">
+      <h4>小结</h4>
+      <p>第 1 级：<b class="s1">0</b>/4 · 第 2 级：<b class="s2">0</b>/4 · 第 3 级：<b class="s3">0</b>/4 · 总计 <b class="tot">0</b>/12</p>
+      <p style="color:var(--ink-3);font-size:13px;">0–3 回看图 02、03；4–7 重点看 05；8–11 订正错题；12 → 试着写一个自己的 Skill。全部答完本卡自动出现；中途可随时「重新开始」。</p>
+    </div>
+  </section>
+
+  <footer>图解学习资料 · Agent Skill · 2026-09</footer>
+</div>
+
+<script>
+(function(){
+  var EXPLAIN = {
+    "q1":"Skill 是一个文件夹：SKILL.md（做法+封面）是必填，小工具 scripts 和资料 references/assets 可选。不是提示词、不是微调、也不是一个 API。",
+    "q2":"必填只有两个：name（名字）与 description（介绍+何时用）。其余 version 等都不是必填。",
+    "q3":"渐进式披露 = 封面(第1层)常驻 → 说中才读正文(第2层) → 需要才开工具与资料(第3层)。所以能同时装很多本也不挤。",
+    "q4":"对。脚本由 Agent 运行，只有输出进大脑；这正是脚本「快、准、省脑子」的原因。",
+    "q5":"Skill 按需加载、能入库、多产品通用；长提示每轮固定占大脑、复制粘贴易走样。",
+    "q6":"要实时状态、要改真实世界 → Tool / MCP。C 的稳定流程适合 Skill；D 的确定性排序正该交给 Skill 里的脚本。",
+    "q7":"确定性操作交给程序：结果恒定、不进上下文。B/C/D 都是错误引申。",
+    "q8":"发现阶段机器人只读封面；「做什么+何时用」写清楚了，命中率才高。",
+    "q9":"A 对：稳定流程入 Skill + 版本管理。B 对：Excel 格式脚本化。C 对：实时数据走 Tool/MCP。D 错：天天变的流程不适合做 Skill。",
+    "q10":"逐项审查 + 隔离试运行。能指挥机器人的脚本 = 攻击面，偷传数据、越权都要防。",
+    "q11":"核心精简、细节下放：SKILL.md 主干，细则进 references/，脚本进 scripts/。",
+    "q12":"开放标准格式已横跨多家产品，一次写成处处复用；写进各家的系统提示反而是重复劳动。"
+  };
+  var qs = [].slice.call(document.querySelectorAll(".q"));
+  var cur = 0;
+
+  // 给每个选项注入字母 value（A/B/C…）
+  qs.forEach(function(q, idx){
+    [].slice.call(q.querySelectorAll(".opts li")).forEach(function(li, i){
+      var inp = li.querySelector("input");
+      if(inp){ inp.value = String.fromCharCode(65 + i); }
+      q._idx = idx;
+    });
+  });
+
+  function selected(q){
+    var p = [];
+    [].slice.call(q.querySelectorAll("input")).forEach(function(inp){ if(inp.checked) p.push(inp.value); });
+    return p.sort().join("");
+  }
+  function render(q, ok, picked, isPeek){
+    var result = q.querySelector(".result");
+    result.classList.remove("correct","wrong","peek");
+    result.classList.add(isPeek ? "peek" : (ok ? "correct" : "wrong"));
+    var head = isPeek ? "<b>答案与解析</b>（看答案不算对，先自己想）"
+                      : "<b>" + (ok ? "对 ✓" : "不对 ✗") + "</b>";
+    var answer = q.getAttribute("data-answer");
+    var ans = answer.length > 1 ? answer.split("").join("、") : answer;
+    result.innerHTML = head + "　答案：" + ans + "　你选：" + (picked || "未作答")
+      + '<div class="why"><b>一句话：</b>' + EXPLAIN["q" + (q._idx + 1)] + "</div>";
+    result.style.display = "block";
+  }
+
+  function currentLevel(){ return qs[cur].parentNode; }
+  function show(i, doScroll){
+    if(i < 0 || i >= qs.length) return;
+    cur = i;
+    qs.forEach(function(q, idx){ q.classList.toggle("active", idx === i); });
+    [].slice.call(document.querySelectorAll(".level")).forEach(function(lv){
+      lv.classList.toggle("on", lv === currentLevel());
+    });
+    document.getElementById("qcur").textContent = cur + 1;
+    document.getElementById("qtotal").textContent = qs.length;
+    document.getElementById("qprev").disabled = (cur === 0);
+    document.getElementById("qnext").disabled = (cur === qs.length - 1);
+    if(doScroll !== false){
+      var top = qs[cur].getBoundingClientRect().top + window.pageYOffset - 14;
+      window.scrollTo({ top: top, behavior: "smooth" });
+    }
+    updateStats();
+  }
+
+  var summaryShown = false;
+  function updateStats(){
+    [].slice.call(document.querySelectorAll(".level")).forEach(function(lvl){
+      var qIn = [].slice.call(lvl.querySelectorAll(".q")), ck = 0, ok = 0;
+      qIn.forEach(function(q){ if(q._checked) ck++; if(q._correct) ok++; });
+      lvl.querySelector(".ck").textContent = ck;
+      lvl.querySelector(".ok").textContent = ok;
+    });
+    var t1 = +document.querySelector("#lvl1 .ok").textContent;
+    var t2 = +document.querySelector("#lvl2 .ok").textContent;
+    var t3 = +document.querySelector("#lvl3 .ok").textContent;
+    document.querySelector(".s1").textContent = t1;
+    document.querySelector(".s2").textContent = t2;
+    document.querySelector(".s3").textContent = t3;
+    document.querySelector(".tot").textContent = t1 + t2 + t3;
+    var allDone = qs.every(function(q){ return q._checked; });
+    var summ = document.querySelector(".summary");
+    if(allDone){
+      if(!summaryShown){
+        summ.classList.add("show");
+        summaryShown = true;
+        setTimeout(function(){ summ.scrollIntoView({ behavior: "smooth", block: "center" }); }, 250);
+      }
+    }
+  }
+
+  qs.forEach(function(q){
+    var answer = q.getAttribute("data-answer");
+    q.querySelector("button.primary").addEventListener("click", function(){
+      var p = selected(q);
+      q._correct = (p === answer);
+      q._checked = true;
+      render(q, q._correct, p);
+      updateStats();
+    });
+    q.querySelector(".show-ans").addEventListener("click", function(){
+      q._checked = true;
+      render(q, true, selected(q) || "未作答", true);
+      [].slice.call(q.querySelectorAll(".opts li")).forEach(function(li, i){
+        var inp = li.querySelector("input");
+        if(inp && answer.indexOf(String.fromCharCode(65 + i)) > -1){ li.style.background = "#edf5f0"; }
+      });
+      updateStats();
+    });
+  });
+
+  document.getElementById("qprev").addEventListener("click", function(){ show(cur - 1, true); });
+  document.getElementById("qnext").addEventListener("click", function(){ show(cur + 1, true); });
+  document.getElementById("qreset").addEventListener("click", function(){
+    qs.forEach(function(q){
+      [].slice.call(q.querySelectorAll("input")).forEach(function(i){ i.checked = false; });
+      q._checked = false; q._correct = false;
+      var r = q.querySelector(".result"); r.className = "result"; r.style.display = "none";
+      [].slice.call(q.querySelectorAll(".opts li")).forEach(function(li){ li.style.background = ""; });
+    });
+    summaryShown = false;
+    document.querySelector(".summary").classList.remove("show");
+    show(0, true);
+  });
+  show(0, false);
+})();
+</script>
+</body>
+</html>

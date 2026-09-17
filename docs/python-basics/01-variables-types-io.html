@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>变量 · 类型 · 输入输出 · 图解</title>
+<style>
+  :root{
+    --ink:#262b33; --ink-2:#5c6572; --ink-3:#8b93a0;
+    --line:#cfd5dd; --line-soft:#e4e8ee;
+    --paper:#fff; --tint:#f2f5f9;
+    --accent:#1d4e89; --accent-soft:#e3ebf5;
+    --good:#2e7d57; --bad:#b0432e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.7;}
+  svg text{font-family:inherit;}
+  .page{max-width:800px;margin:0 auto;padding:34px 24px 80px;}
+  header{padding-bottom:16px;border-bottom:1px solid var(--line-soft);}
+  h1{font-size:25px;margin:0 0 8px}
+  .tagline{color:var(--ink-2);font-size:14.5px;margin:0}
+  .crumb{margin:0 0 10px;font-size:13px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  section.learn{margin:28px 0 6px}
+  .lno{font-family:Consolas,monospace;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 7px;margin-right:8px}
+  h3{font-size:17px;margin:0 0 4px;font-weight:700}
+  figure{margin:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-size:13.5px;color:var(--ink-2);background:var(--tint);border-radius:8px;padding:6px 13px;max-width:80%;margin-top:4px}
+  .wrap{background:var(--tint);border:1px solid var(--line-soft);border-radius:14px;padding:8px 6px 4px}
+  .quiz-head{margin-top:44px;border-bottom:1px solid var(--line-soft);padding-bottom:10px}
+  .qcard{display:none;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .qcard.on{display:block;animation:qi .18s ease}
+  @keyframes qi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .q-no{font-size:12px;color:var(--ink-3);font-weight:600}
+  .q-type{font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 6px;margin-right:8px}
+  .q-stem{font-size:15.5px;margin:6px 0 10px}
+  .opts{list-style:none;margin:0;padding:0}
+  .opts li{display:flex;gap:9px;align-items:flex-start;padding:5px 8px;border-radius:8px}
+  .opts li:hover{background:var(--tint)}
+  .opts label{flex:1;cursor:pointer;font-size:14.5px}
+  .opts input{accent-color:var(--accent);margin-top:6px}
+  .ltr{font-family:Consolas,monospace;font-weight:700;color:var(--ink-2);min-width:15px}
+  code{font-family:Consolas,monospace;font-size:14px;background:var(--tint);border:1px solid var(--line-soft);border-radius:4px;padding:0 4px}
+  .qbar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  button{font-family:inherit;font-size:13px;padding:5px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--accent);background:#fff;color:var(--accent)}
+  button:hover{background:var(--accent-soft)}
+  button.primary{background:var(--accent);color:#fff}
+  button.primary:hover{background:#163c69}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .feedback{display:none;margin-top:10px;padding:9px 13px;border-radius:8px;font-size:14px}
+  .feedback.show{display:block}
+  .feedback.good{background:#edf5f0;border:1px solid #cfe2d6;color:var(--good)}
+  .feedback.bad{background:#faf0ed;border:1px solid #ead2cb;color:var(--bad)}
+  .feedback.mid{background:var(--tint);border:1px solid var(--line);color:var(--ink-2)}
+  .feedback .why{color:var(--ink-2);border-top:1px dashed var(--line);padding-top:6px;margin-top:6px}
+  .result-screen{display:none;border:1px solid var(--accent);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .result-screen.show{display:block}
+  .why-src{display:none}
+  .lesson-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:34px;padding-top:14px;border-top:1px solid var(--line-soft);font-size:13.5px}
+  .lesson-nav .dim{color:var(--ink-3)}
+  footer{margin-top:18px;color:var(--ink-3);font-size:12px;border-top:1px solid var(--line-soft);padding-top:10px}
+  @media(max-width:560px){figcaption{max-width:100%}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 z" fill="#1d4e89"/></marker>
+  <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 z" fill="#b4b2a9"/></marker>
+</defs></svg>
+
+<div class="page">
+
+  <header>
+    <p class="crumb"><a href="index.html">← 返回学习资料目录</a></p>
+    <h1>01 变量 · 类型 · 输入输出</h1>
+    <p class="tagline">学完能看懂任何一段赋值语句，并说出每个值是什么类型 · 建议用时 20 分钟</p>
+  </header>
+
+  <section class="learn">
+    <h3><span class="lno">01</span>变量是贴在值上的名字</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 230" role="img" aria-label="变量名指向值">
+        <text x="150" y="30" font-size="12" fill="#8b93a0">名字</text>
+        <text x="440" y="30" font-size="12" fill="#8b93a0">值</text>
+        <rect x="150" y="50" width="130" height="50" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="215" y="81" text-anchor="middle" font-size="16" fill="#1d4e89">age</text>
+        <line x1="290" y1="75" x2="430" y2="75" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="440" y="50" width="170" height="50" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="525" y="81" text-anchor="middle" font-size="16" fill="#262b33">42</text>
+        <rect x="150" y="130" width="130" height="50" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="215" y="161" text-anchor="middle" font-size="16" fill="#1d4e89">city</text>
+        <line x1="290" y1="155" x2="430" y2="155" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="440" y="130" width="170" height="50" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="525" y="161" text-anchor="middle" font-size="16" fill="#262b33">"兰州"</text>
+      </svg>
+    </div>
+    <figcaption><code>age = 42</code> 读作「把名字 age 贴到 42 这个值上」，而不是「往 age 盒子里装 42」。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">02</span>四种基本类型，一眼认出</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 170" role="img" aria-label="int float str bool 四种类型">
+        <rect x="36" y="40" width="160" height="110" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="116" y="72" text-anchor="middle" font-size="14" fill="#5c6572">int · 整数</text>
+        <line x1="56" y1="86" x2="176" y2="86" stroke="#e4e8ee"/>
+        <text x="116" y="119" text-anchor="middle" font-size="17" fill="#262b33">42</text>
+        <rect x="212" y="40" width="160" height="110" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="292" y="72" text-anchor="middle" font-size="14" fill="#5c6572">float · 小数</text>
+        <line x1="232" y1="86" x2="352" y2="86" stroke="#e4e8ee"/>
+        <text x="292" y="119" text-anchor="middle" font-size="17" fill="#262b33">3.14</text>
+        <rect x="388" y="40" width="160" height="110" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="468" y="72" text-anchor="middle" font-size="14" fill="#5c6572">str · 文本</text>
+        <line x1="408" y1="86" x2="528" y2="86" stroke="#e4e8ee"/>
+        <text x="468" y="119" text-anchor="middle" font-size="17" fill="#262b33">"兰州"</text>
+        <rect x="564" y="40" width="160" height="110" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="644" y="72" text-anchor="middle" font-size="14" fill="#5c6572">bool · 真假</text>
+        <line x1="584" y1="86" x2="704" y2="86" stroke="#e4e8ee"/>
+        <text x="644" y="119" text-anchor="middle" font-size="17" fill="#262b33">True</text>
+      </svg>
+    </div>
+    <figcaption>带引号的永远是 str；带小数点的永远是 float，哪怕它是 <code>3.0</code>。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">03</span><code>+</code> 的含义由类型决定</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 260" role="img" aria-label="加号在数字与字符串上的不同含义">
+        <rect x="50" y="36" width="110" height="52" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="105" y="68" text-anchor="middle" font-size="16" fill="#262b33">1</text>
+        <text x="180" y="68" text-anchor="middle" font-size="20" fill="#8b93a0">+</text>
+        <rect x="200" y="36" width="110" height="52" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="255" y="68" text-anchor="middle" font-size="16" fill="#262b33">2</text>
+        <line x1="325" y1="62" x2="378" y2="62" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="390" y="36" width="190" height="52" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="485" y="68" text-anchor="middle" font-size="16" fill="#1d4e89">3</text>
+        <text x="600" y="68" font-size="13" fill="#5c6572">数字：相加</text>
+
+        <rect x="50" y="112" width="110" height="52" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="105" y="144" text-anchor="middle" font-size="16" fill="#262b33">"1"</text>
+        <text x="180" y="144" text-anchor="middle" font-size="20" fill="#8b93a0">+</text>
+        <rect x="200" y="112" width="110" height="52" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="255" y="144" text-anchor="middle" font-size="16" fill="#262b33">"2"</text>
+        <line x1="325" y1="138" x2="378" y2="138" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="390" y="112" width="190" height="52" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="485" y="144" text-anchor="middle" font-size="16" fill="#1d4e89">"12"</text>
+        <text x="600" y="144" font-size="13" fill="#5c6572">文本：拼接</text>
+
+        <rect x="50" y="188" width="110" height="52" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="105" y="220" text-anchor="middle" font-size="16" fill="#262b33">"3"</text>
+        <text x="180" y="220" text-anchor="middle" font-size="20" fill="#8b93a0">+</text>
+        <rect x="200" y="188" width="110" height="52" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="255" y="220" text-anchor="middle" font-size="16" fill="#262b33">1</text>
+        <line x1="325" y1="214" x2="378" y2="214" stroke="#b0432e" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="390" y="188" width="190" height="52" rx="10" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="485" y="220" text-anchor="middle" font-size="15" fill="#b0432e">报错 TypeError</text>
+        <text x="600" y="220" font-size="13" fill="#5c6572">混用：直接崩</text>
+      </svg>
+    </div>
+    <figcaption>同一个 <code>+</code>，在数字上是加法，在文本上是拼接，混着用直接报错——这是新手最常撞的墙。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">04</span><code>input()</code> 拿回来的永远是字符串</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 246" role="img" aria-label="input 返回字符串以及类型转换">
+        <rect x="110" y="36" width="210" height="50" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="215" y="67" text-anchor="middle" font-size="14" fill="#1d4e89">input("年龄：")</text>
+        <line x1="332" y1="61" x2="418" y2="61" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="430" y="36" width="140" height="50" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="500" y="67" text-anchor="middle" font-size="15" fill="#262b33">"18"</text>
+        <text x="590" y="67" font-size="13" fill="#5c6572">str</text>
+
+        <rect x="110" y="106" width="210" height="50" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="215" y="137" text-anchor="middle" font-size="14" fill="#262b33">int("18")</text>
+        <line x1="332" y1="131" x2="418" y2="131" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="430" y="106" width="140" height="50" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="500" y="137" text-anchor="middle" font-size="15" fill="#1d4e89">18</text>
+        <text x="590" y="137" font-size="13" fill="#5c6572">int</text>
+
+        <rect x="110" y="176" width="210" height="50" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="215" y="207" text-anchor="middle" font-size="14" fill="#262b33">str(42)</text>
+        <line x1="332" y1="201" x2="418" y2="201" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="430" y="176" width="140" height="50" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="500" y="207" text-anchor="middle" font-size="15" fill="#1d4e89">"42"</text>
+        <text x="590" y="207" font-size="13" fill="#5c6572">str</text>
+      </svg>
+    </div>
+    <figcaption>想要数字就得自己转：<code>int()</code> 转整数、<code>float()</code> 转小数、<code>str()</code> 转文本。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">05</span>重新赋值，是把标签撕下来换贴</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 260" role="img" aria-label="重新赋值后变量指向新值">
+        <rect x="170" y="32" width="190" height="48" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="265" y="62" text-anchor="middle" font-size="14" fill="#262b33">age = 42</text>
+        <line x1="372" y1="56" x2="420" y2="56" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="430" y="32" width="190" height="48" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="525" y="62" text-anchor="middle" font-size="14" fill="#1d4e89">age = 43</text>
+
+        <rect x="80" y="140" width="140" height="48" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="150" y="170" text-anchor="middle" font-size="16" fill="#1d4e89">age</text>
+        <line x1="230" y1="158" x2="392" y2="114" stroke="#b4b2a9" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arw)"/>
+        <line x1="230" y1="170" x2="392" y2="204" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="400" y="90" width="160" height="48" rx="10" fill="#fff" stroke="#b4b2a9" stroke-dasharray="5 4"/>
+        <text x="480" y="120" text-anchor="middle" font-size="16" fill="#8b93a0">42</text>
+        <rect x="400" y="180" width="160" height="48" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="480" y="210" text-anchor="middle" font-size="16" fill="#1d4e89">43</text>
+        <text x="580" y="120" font-size="12" fill="#8b93a0">旧值，没人指向了</text>
+        <text x="580" y="210" font-size="12" fill="#1d4e89">现在指向它</text>
+      </svg>
+    </div>
+    <figcaption>同一个名字先后指向不同的值，旧值不会消失，只是再也没人指向它。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">06</span>f-string：把值嵌进句子里</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 272" role="img" aria-label="f-string 把变量的值嵌进句子">
+        <rect x="60" y="30" width="280" height="44" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="200" y="58" text-anchor="middle" font-size="14" fill="#262b33">name = "蓉蓉"</text>
+        <rect x="380" y="30" width="280" height="44" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="520" y="58" text-anchor="middle" font-size="14" fill="#262b33">score = 95</text>
+        <rect x="60" y="96" width="600" height="56" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="360" y="130" text-anchor="middle" font-size="15" fill="#5c6572">f"{name} 考了 {score} 分"</text>
+        <line x1="360" y1="160" x2="360" y2="190" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="60" y="196" width="600" height="56" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="360" y="230" text-anchor="middle" font-size="16" fill="#1d4e89">蓉蓉 考了 95 分</text>
+      </svg>
+    </div>
+    <figcaption>字符串前面加 <code>f</code>，花括号里的变量会被它的值替换掉。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">07</span>命名规矩：小写、下划线、别占关键字</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 250" role="img" aria-label="合法的变量名与非法的变量名">
+        <rect x="30" y="34" width="330" height="196" rx="12" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="195" y="64" text-anchor="middle" font-size="14" fill="#2e7d57">✓ 这样写</text>
+        <rect x="60" y="84" width="270" height="36" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="195" y="108" text-anchor="middle" font-size="14" fill="#262b33">student_name</text>
+        <rect x="60" y="126" width="270" height="36" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="195" y="150" text-anchor="middle" font-size="14" fill="#262b33">score_1</text>
+        <rect x="60" y="168" width="270" height="36" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="195" y="192" text-anchor="middle" font-size="14" fill="#262b33">is_ok</text>
+
+        <rect x="400" y="34" width="330" height="196" rx="12" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="565" y="64" text-anchor="middle" font-size="14" fill="#b0432e">✗ 这样不行</text>
+        <rect x="424" y="84" width="160" height="36" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="504" y="108" text-anchor="middle" font-size="14" fill="#262b33">2nd_name</text>
+        <text x="600" y="108" font-size="12" fill="#8b93a0">数字开头</text>
+        <rect x="424" y="126" width="160" height="36" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="504" y="150" text-anchor="middle" font-size="14" fill="#262b33">student-name</text>
+        <text x="600" y="150" font-size="12" fill="#8b93a0">含连字符</text>
+        <rect x="424" y="168" width="160" height="36" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="504" y="192" text-anchor="middle" font-size="14" fill="#262b33">class</text>
+        <text x="600" y="192" font-size="12" fill="#8b93a0">保留关键字</text>
+      </svg>
+    </div>
+    <figcaption>Python 的约定是小写加下划线（<code>student_name</code>），不写 <code>studentName</code>。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">08</span>把三种类型串起来：算平均分</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 264" role="img" aria-label="三行代码从数据到输出">
+        <rect x="30" y="40" width="170" height="56" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="115" y="74" text-anchor="middle" font-size="14" fill="#262b33">[88, 92, 90]</text>
+        <line x1="206" y1="68" x2="260" y2="68" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="233" y="108" text-anchor="middle" font-size="11" fill="#8b93a0">sum÷len</text>
+        <rect x="266" y="40" width="170" height="56" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="351" y="74" text-anchor="middle" font-size="14" fill="#262b33">90.0</text>
+        <line x1="442" y1="68" x2="496" y2="68" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="469" y="108" text-anchor="middle" font-size="11" fill="#8b93a0">f-string</text>
+        <rect x="502" y="40" width="228" height="56" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="616" y="74" text-anchor="middle" font-size="15" fill="#1d4e89">平均 90.0 分</text>
+
+        <rect x="30" y="150" width="700" height="94" rx="10" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="52" y="182" font-family="Consolas,monospace" font-size="13" fill="#262b33">scores = [88, 92, 90]</text>
+        <text x="52" y="206" font-family="Consolas,monospace" font-size="13" fill="#262b33">avg = sum(scores) / len(scores)</text>
+        <text x="52" y="230" font-family="Consolas,monospace" font-size="13" fill="#262b33">print(f"平均 {avg} 分")</text>
+      </svg>
+    </div>
+    <figcaption>三行代码里有 list、有 float、有 f-string——本节的四样东西全用上了。</figcaption>
+  </section>
+
+  <h2 class="quiz-head">分级自测</h2>
+  <p style="color:var(--ink-3);font-size:13.5px">
+    三级递进：概念(1) → 辨析(2) → 应用(3)。题目一道一道出：先自己选，再「检查本题」；全部作答后自动出成绩。
+  </p>
+
+  <div id="qdeck">
+
+    <div class="qcard" data-lvl="1" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem"><code>type(3.0)</code> 的结果是什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q1"><span class="ltr">A</span><code>int</code></label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">B</span><code>float</code></label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">C</span><code>str</code></label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">D</span><code>bool</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">只要带小数点，Python 就归为 float，哪怕它的数值是整数。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="C">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem"><code>input()</code> 拿回来的数据是什么类型？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q2"><span class="ltr">A</span>由用户输入的内容决定</label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">B</span><code>int</code></label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">C</span><code>str</code></label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">D</span><code>float</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">input() 一律返回字符串，要参与算术必须自己用 int() 或 float() 转换。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">下面哪个是合法的变量名？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q3"><span class="ltr">A</span><code>student_name</code></label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">B</span><code>2nd_name</code></label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">C</span><code>student-name</code></label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">D</span><code>class</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">变量名不能以数字开头、不能含连字符、不能占用保留关键字；小写加下划线是 Python 的通行写法。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="D">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">执行 <code>is_ok = True</code> 之后，<code>type(is_ok)</code> 是什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q4"><span class="ltr">A</span><code>str</code></label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">B</span><code>int</code></label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">C</span><code>float</code></label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">D</span><code>bool</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">True / False 是布尔类型；一旦写成 "True"（带引号）就变成字符串了。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="C">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem"><code>"3" + 1</code> 会得到什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q5"><span class="ltr">A</span><code>4</code></label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">B</span><code>"31"</code></label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">C</span>报错 <code>TypeError</code></label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">D</span><code>"3 + 1"</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">Python 不会替你猜「3」是数字还是文字，类型对不上就直接报 TypeError，必须显式转换。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="ABD">
+      <p><span class="q-type">多选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem">关于变量，下面哪些说法是对的？</p>
+      <ul class="opts">
+        <li><label><input type="checkbox" name="q6"><span class="ltr">A</span>变量名只是贴在值上的名字</label></li>
+        <li><label><input type="checkbox" name="q6"><span class="ltr">B</span>给同一个变量重新赋值，它会指向新的值</label></li>
+        <li><label><input type="checkbox" name="q6"><span class="ltr">C</span>变量必须先声明类型，例如 <code>int age = 18</code></label></li>
+        <li><label><input type="checkbox" name="q6"><span class="ltr">D</span>同一个变量先后可以指向不同类型的值</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">Python 是动态类型，赋值即定义；<code>age = 18</code> 之后写 <code>age = "十八"</code> 也完全合法。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem"><code>print(1 + 2)</code> 和 <code>print("1" + "2")</code> 分别输出什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q7"><span class="ltr">A</span>两个都是 <code>3</code></label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">B</span><code>3</code> 和 <code>12</code></label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">C</span><code>12</code> 和 <code>3</code></label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">D</span>两句都报错</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">同一个符号两种含义：数字上是加法，字符串上是拼接。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="C">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem"><code>int("3.14")</code> 会怎样？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q8"><span class="ltr">A</span>得到 <code>3</code>（自动截断）</label></li>
+        <li><label><input type="radio" name="q8"><span class="ltr">B</span>得到 <code>3.14</code></label></li>
+        <li><label><input type="radio" name="q8"><span class="ltr">C</span>报错 <code>ValueError</code></label></li>
+        <li><label><input type="radio" name="q8"><span class="ltr">D</span>得到 <code>"3"</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">int() 不接受带小数点的字符串；要两步走：<code>int(float("3.14"))</code>。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">要让下一行 <code>print(age + 10)</code> 正常工作，<code>age</code> 应该怎么写出来？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q9"><span class="ltr">A</span><code>age = input("年龄：")</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">B</span><code>age = int(input("年龄："))</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">C</span><code>age = str(input("年龄："))</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">D</span><code>age = print(input("年龄："))</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">A 拿到的是字符串，加 10 会报 TypeError；D 的 print 返回 None。只有 B 一步到位得到整数。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">已知 <code>scores = [88, 92, 90]</code>，下面哪一句会报错？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q10"><span class="ltr">A</span><code>print("平均" + sum(scores)/3 + "分")</code></label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">B</span><code>print(f"平均 {sum(scores)/3} 分")</code></label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">C</span><code>print("平均", sum(scores)/3, "分")</code></label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">D</span><code>print("平均" + str(sum(scores)/3) + "分")</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">A 让字符串去加一个 float，类型不匹配；B 用 f-string、C 用逗号分隔、D 手动 str()，都不需要隐式转换。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="D">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">下面这段代码能正常跑出结果：<code>a = 88</code>、<code>b = 3</code>、<code>c = a / b</code>、<code>print(c)</code>。一个月后回看，最大的问题是什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q11"><span class="ltr">A</span>运行速度太慢</label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">B</span>算出来的结果不对</label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">C</span>变量数量太少</label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">D</span>名字没有含义，读不出这段在算什么</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">代码是写给未来的自己看的；改成 <code>total_score / subject_count</code>，省下的是重新推理的时间。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">学生问：为什么 <code>print(0.1 + 0.2)</code> 出来的是 <code>0.30000000000000004</code>？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q12"><span class="ltr">A</span>Python 算错了，是它的 bug</label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">B</span>浮点数用二进制近似存储，0.1 无法精确表示；判断相等要用容差</label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">C</span>需要先 <code>import math</code> 才能做小数加法</label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">D</span>电脑的 CPU 有故障</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">这是所有使用二进制浮点的语言共有的特性，不是 Python 的错；比较大小用 <code>abs(x - y) &lt; 1e-9</code>。</div>
+      <div class="feedback"></div>
+    </div>
+
+  </div>
+
+  <div class="qbar" style="justify-content:space-between">
+    <button id="prev" type="button">← 上一题</button>
+    <button id="next" type="button">下一题 →</button>
+  </div>
+
+  <div class="result-screen" id="result">
+    <h3 style="margin:0 0 6px">成绩</h3>
+    <p id="r-txt"></p>
+    <p style="color:var(--ink-3);font-size:13px" id="r-hint"></p>
+    <button id="again" type="button">重新作答</button>
+  </div>
+
+  <nav class="lesson-nav">
+    <span class="dim">← 已是第一份</span>
+    <a href="index.html">返回目录</a>
+    <a href="02-strings-lists.html">下一份：字符串 · 列表 →</a>
+  </nav>
+
+  <footer>图解学习资料 · 生成于 <span id="yr"></span></footer>
+</div>
+
+<script>
+(function(){
+  var cards = [].slice.call(document.querySelectorAll(".qcard"));
+  var deckTop = document.getElementById("qdeck").offsetTop;
+
+  cards.forEach(function(c){
+    [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+      var inp = li.querySelector("input");
+      if (inp) inp.value = String.fromCharCode(65 + i);
+    });
+  });
+
+  function sel(c){
+    var p = [];
+    [].slice.call(c.querySelectorAll("input")).forEach(function(i){ if(i.checked) p.push(i.value); });
+    return p.sort().join("");
+  }
+  function show(i){
+    cards.forEach(function(c, idx){ c.classList.toggle("on", idx === i); });
+    document.getElementById("prev").disabled = (i === 0);
+    document.getElementById("next").disabled = (i >= cards.length - 1);
+    window.scrollTo({ top: deckTop - 16, behavior: "smooth" });
+  }
+  function markDone(c){ if(!c._done){ c._done = true; } }
+  function allDone(){ return cards.every(function(c){ return c._done; }); }
+  function fb(c, ok, kind, extra){
+    var el = c.querySelector(".feedback");
+    el.className = "feedback show " + (kind || (ok ? "good" : "bad"));
+    var head = kind === "mid" ? "<b>参考答案</b>（看答案不计分）" : ok ? "<b>答对了 ✓</b>" : "<b>不对 ✗</b>";
+    el.innerHTML = head + "　答案：" + extra + '<div class="why">' + c.querySelector(".why-src").textContent + "</div>";
+  }
+  function renderResult(){
+    var per = {1:[0,0], 2:[0,0], 3:[0,0]};
+    cards.forEach(function(c){
+      var l = +c.dataset.lvl; per[l][0]++; if(c._ok) per[l][1]++;
+    });
+    var ok = per[1][1] + per[2][1] + per[3][1], tot = cards.length;
+    document.getElementById("r-txt").innerHTML =
+      "概念 " + per[1][1] + "/" + per[1][0] +
+      " · 辨析 " + per[2][1] + "/" + per[2][0] +
+      " · 应用 " + per[3][1] + "/" + per[3][0] +
+      "　<b>总计 " + ok + "/" + tot + "</b>";
+    document.getElementById("r-hint").textContent =
+      ok >= tot * 0.85 ? "掌握良好，可尝试动手实践。"
+      : ok >= tot * 0.5 ? "针对错题回看对应小节。"
+      : "答对不足一半，建议重读知识区。";
+    var r = document.getElementById("result");
+    r.classList.add("show");
+    r.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function maybeResult(){ if(allDone()) renderResult(); }
+
+  cards.forEach(function(c){
+    var ans = c.dataset.answer;
+    c.querySelector(".check").addEventListener("click", function(){
+      var p = sel(c), ok = (p === ans);
+      c._ok = ok; markDone(c);
+      fb(c, ok, null, fmt(ans) + "　你选：" + (p || "未作答"));
+      maybeResult();
+    });
+    c.querySelector(".peek").addEventListener("click", function(){
+      markDone(c);
+      fb(c, true, "mid", fmt(ans) + "　你选：" + (sel(c) || "未作答"));
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+        var inp = li.querySelector("input");
+        if (inp && ans.indexOf(String.fromCharCode(65 + i)) > -1) li.style.background = "#eef3fa";
+      });
+      maybeResult();
+    });
+  });
+  function fmt(a){ return a.length > 1 ? a.split("").join("、") : a; }
+
+  var cur = 0;
+  document.getElementById("prev").addEventListener("click", function(){ if(cur>0){ cur--; show(cur); } });
+  document.getElementById("next").addEventListener("click", function(){ if(cur<cards.length-1){ cur++; show(cur); } });
+  document.getElementById("again").addEventListener("click", function(){
+    cards.forEach(function(c){
+      c._done = false; c._ok = false;
+      [].slice.call(c.querySelectorAll("input")).forEach(function(i){ i.checked = false; });
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li){ li.style.background = ""; });
+      var f = c.querySelector(".feedback"); f.className = "feedback"; f.innerHTML = "";
+    });
+    document.getElementById("result").classList.remove("show");
+    cur = 0; show(cur);
+  });
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  show(0);
+})();
+</script>
+</body>
+</html>

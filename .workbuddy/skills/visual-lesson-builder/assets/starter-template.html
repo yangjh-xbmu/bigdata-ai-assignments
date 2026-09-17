@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<!--
+  visual-lesson-builder · starter template
+  用法：复制本文件 → 把 SCENES 知识区逐节替换为自绘 SVG → 在 #qdeck 里按模板插入题目卡（每题 3 级任选）→ 交付前截图自查排版。
+  设计约束（勿破）：中性灰 + 单一强调色；无图标字体/emoji/卡通；知识区每节 = 一句话标题 + 一张图 + 一句图注；
+  测验“一题一题出”：上一题/下一题切换，即时判分，看答案不计分，全部做完出成绩。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习资料标题 · 图解</title>
+<style>
+  :root{
+    --ink:#262b33; --ink-2:#5c6572; --ink-3:#8b93a0;
+    --line:#cfd5dd; --line-soft:#e4e8ee;
+    --paper:#fff; --tint:#f2f5f9;
+    --accent:#1d4e89; --accent-soft:#e3ebf5;
+    --good:#2e7d57; --bad:#b0432e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.7;}
+  svg text{font-family:inherit;}
+  .page{max-width:800px;margin:0 auto;padding:34px 24px 80px;}
+  header{padding-bottom:16px;border-bottom:1px solid var(--line-soft);}
+  h1{font-size:25px;margin:0 0 8px}
+  .tagline{color:var(--ink-2);font-size:14.5px;margin:0}
+  section.learn{margin:28px 0 6px}
+  .lno{font-family:Consolas,monospace;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 7px;margin-right:8px}
+  h3{font-size:17px;margin:0 0 4px;font-weight:700}
+  figure{margin:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-size:13.5px;color:var(--ink-2);background:var(--tint);border-radius:8px;padding:6px 13px;max-width:80%;margin-top:4px}
+  .wrap{background:var(--tint);border:1px solid var(--line-soft);border-radius:14px;padding:8px 6px 4px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 4px}
+  .chips span{font-size:12.5px;color:var(--ink-2);background:#fff;border:1px solid var(--line);border-radius:999px;padding:2px 12px}
+  .chips b{color:var(--ink)}
+  /* ---------- 测验：一题一题出 ---------- */
+  .quiz-head{margin-top:44px;border-bottom:1px solid var(--line-soft);padding-bottom:10px}
+  .qcard{display:none;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .qcard.on{display:block;animation:qi .18s ease}
+  @keyframes qi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .q-no{font-size:12px;color:var(--ink-3);font-weight:600}
+  .q-type{font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 6px;margin-right:8px}
+  .q-stem{font-size:15.5px;margin:6px 0 10px}
+  .opts{list-style:none;margin:0;padding:0}
+  .opts li{display:flex;gap:9px;align-items:flex-start;padding:5px 8px;border-radius:8px}
+  .opts li:hover{background:var(--tint)}
+  .opts label{flex:1;cursor:pointer;font-size:14.5px}
+  .opts input{accent-color:var(--accent);margin-top:6px}
+  .ltr{font-family:Consolas,monospace;font-weight:700;color:var(--ink-2);min-width:15px}
+  .qbar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  button{font-family:inherit;font-size:13px;padding:5px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--accent);background:#fff;color:var(--accent)}
+  button:hover{background:var(--accent-soft)}
+  button.primary{background:var(--accent);color:#fff}
+  button.primary:hover{background:#163c69}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .feedback{display:none;margin-top:10px;padding:9px 13px;border-radius:8px;font-size:14px}
+  .feedback.show{display:block}
+  .feedback.good{background:#edf5f0;border:1px solid #cfe2d6;color:var(--good)}
+  .feedback.bad{background:#faf0ed;border:1px solid #ead2cb;color:var(--bad)}
+  .feedback.mid{background:var(--tint);border:1px solid var(--line);color:var(--ink-2)}
+  .feedback .why{color:var(--ink-2);border-top:1px dashed var(--line);padding-top:6px;margin-top:6px}
+  .result-screen{display:none;border:1px solid var(--accent);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .result-screen.show{display:block}
+  .why-src{display:none}
+  footer{margin-top:36px;color:var(--ink-3);font-size:12px;border-top:1px solid var(--line-soft);padding-top:10px}
+  @media(max-width:560px){figcaption{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>概念名：一句话副标题</h1>
+    <p class="tagline">一句话说明学完能干什么 · 建议用时 X 分钟</p>
+  </header>
+
+  <!-- ============ SCENES：知识区，每节一张自绘 SVG ============ -->
+  <!-- 规则：标题 ≤ 一句话；图内只放短标签；图注一句话。中性灰 + 单一强调色，勿卡通、勿贴网图。 -->
+  <section class="learn">
+    <h3><span class="lno">01</span>第一节：一个想法一句话</h3>
+    <div class="wrap">
+      <!-- 占位示例图，替换为你的几何示意图；viewBox 宽度统一 760 -->
+      <svg viewBox="0 0 760 200" role="img" aria-label="简短说明">
+        <rect x="20" y="40" width="300" height="120" rx="14" fill="#fff" stroke="#cfd5dd"/>
+        <rect x="440" y="40" width="300" height="120" rx="14" fill="#eef3fa" stroke="#1d4e89"/>
+        <text x="170" y="105" text-anchor="middle" font-size="16" fill="#262b33">改这里</text>
+        <text x="590" y="105" text-anchor="middle" font-size="16" fill="#1d4e89">画你的图</text>
+      </svg>
+    </div>
+    <figcaption>图注一句话，讲清这一节。</figcaption>
+  </section>
+  <!-- ……继续加 3–8 节，每节配一张自绘 SVG …………………… -->
+
+  <!-- ============ QUIZ：分级测验（引擎就绪，只填题目卡） ============ -->
+  <h2 class="quiz-head">分级自测</h2>
+  <p style="color:var(--ink-3);font-size:13.5px">
+    三级递进：概念(1) → 辨析(2) → 应用(3)。题目一道一道出：先自己选，再「检查本题」；全部作答后自动出成绩。
+  </p>
+
+  <div id="qdeck">
+    <!--
+      题目卡填写规则：
+      · 外层 .qcard：data-lvl = 1|2|3（所属级别，用于分组统计）；data-answer = 正确项字母。
+        多选把正确字母按升序连写，例如 data-answer="AC"。
+      · 单选：一组 type="radio" 且 name 相同；多选：type="checkbox"；判断题：两个选项 A/B 即可。
+      · 每题在 .qbar 之后放一个 <div class="why-src">一句话解析</div>。
+      · 建议每级 3–5 题；第3级用场景题（给一小段情景再问）。
+    -->
+    <div class="qcard" data-lvl="1" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">题干（问事实）</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="ex1"><span class="ltr">A</span>选项一</label></li>
+        <li><label><input type="radio" name="ex1"><span class="ltr">B</span>选项二（正确项）</label></li>
+        <li><label><input type="radio" name="ex1"><span class="ltr">C</span>选项三</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">一句话解析（为什么选 B）。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="AC">
+      <p><span class="q-type">多选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem">题干（考分辨易混点）</p>
+      <ul class="opts">
+        <li><label><input type="checkbox" name="ex2"><span class="ltr">A</span>正确项</label></li>
+        <li><label><input type="checkbox" name="ex2"><span class="ltr">B</span>干扰项</label></li>
+        <li><label><input type="checkbox" name="ex2"><span class="ltr">C</span>正确项</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">一句话解析（为什么 A、C 对，B 错）。</div>
+      <div class="feedback"></div>
+    </div>
+    <!-- ……按 4 题/级 继续添加 …………………… -->
+  </div>
+
+  <div class="qbar" style="justify-content:space-between">
+    <button id="prev" type="button">← 上一题</button>
+    <button id="next" type="button">下一题 →</button>
+  </div>
+
+  <div class="result-screen" id="result">
+    <h3 style="margin:0 0 6px">成绩</h3>
+    <p id="r-txt"></p>
+    <p style="color:var(--ink-3);font-size:13px" id="r-hint"></p>
+    <button id="again" type="button">重新作答</button>
+  </div>
+
+  <footer>图解学习资料 · 生成于 <span id="yr"></span></footer>
+</div>
+
+<script>
+(function(){
+  var cards = [].slice.call(document.querySelectorAll(".qcard"));
+  var deckTop = document.getElementById("qdeck").offsetTop;
+
+  // 为每个选项注入字母 value（A/B/C…）供比对
+  cards.forEach(function(c){
+    [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+      var inp = li.querySelector("input");
+      if (inp) inp.value = String.fromCharCode(65 + i);
+    });
+  });
+
+  function sel(c){
+    var p = [];
+    [].slice.call(c.querySelectorAll("input")).forEach(function(i){ if(i.checked) p.push(i.value); });
+    return p.sort().join("");
+  }
+  function show(i){
+    cards.forEach(function(c, idx){ c.classList.toggle("on", idx === i); });
+    document.getElementById("prev").disabled = (i === 0);
+    document.getElementById("next").disabled = (i >= cards.length - 1);
+    window.scrollTo({ top: deckTop - 16, behavior: "smooth" });
+  }
+  function markDone(c){ if(!c._done){ c._done = true; } }
+  function allDone(){ return cards.every(function(c){ return c._done; }); }
+  function fb(c, ok, kind, extra){
+    var el = c.querySelector(".feedback");
+    el.className = "feedback show " + (kind || (ok ? "good" : "bad"));
+    var head = kind === "mid" ? "<b>参考答案</b>（看答案不计分）" : ok ? "<b>答对了 ✓</b>" : "<b>不对 ✗</b>";
+    el.innerHTML = head + "　答案：" + extra + '<div class="why">' + c.querySelector(".why-src").textContent + "</div>";
+  }
+  function renderResult(){
+    var per = {1:[0,0], 2:[0,0], 3:[0,0]};
+    cards.forEach(function(c){
+      var l = +c.dataset.lvl; per[l][0]++; if(c._ok) per[l][1]++;
+    });
+    var ok = per[1][1] + per[2][1] + per[3][1], tot = cards.length;
+    document.getElementById("r-txt").innerHTML =
+      "概念 " + per[1][1] + "/" + per[1][0] +
+      " · 辨析 " + per[2][1] + "/" + per[2][0] +
+      " · 应用 " + per[3][1] + "/" + per[3][0] +
+      "　<b>总计 " + ok + "/" + tot + "</b>";
+    document.getElementById("r-hint").textContent =
+      ok >= tot * 0.85 ? "掌握良好，可尝试动手实践。"
+      : ok >= tot * 0.5 ? "针对错题回看对应小节。"
+      : "答对不足一半，建议重读知识区。";
+    var r = document.getElementById("result");
+    r.classList.add("show");
+    r.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function maybeResult(){ if(allDone()) renderResult(); }
+
+  cards.forEach(function(c){
+    var ans = c.dataset.answer;
+    c.querySelector(".check").addEventListener("click", function(){
+      var p = sel(c), ok = (p === ans);
+      c._ok = ok; markDone(c);
+      fb(c, ok, null, fmt(ans) + "　你选：" + (p || "未作答"));
+      maybeResult();
+    });
+    c.querySelector(".peek").addEventListener("click", function(){
+      markDone(c);
+      fb(c, true, "mid", fmt(ans) + "　你选：" + (sel(c) || "未作答"));
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+        var inp = li.querySelector("input");
+        if (inp && ans.indexOf(String.fromCharCode(65 + i)) > -1) li.style.background = "#eef3fa";
+      });
+      maybeResult();
+    });
+  });
+  function fmt(a){ return a.length > 1 ? a.split("").join("、") : a; }
+
+  var cur = 0;
+  document.getElementById("prev").addEventListener("click", function(){ if(cur>0){ cur--; show(cur); } });
+  document.getElementById("next").addEventListener("click", function(){ if(cur<cards.length-1){ cur++; show(cur); } });
+  document.getElementById("again").addEventListener("click", function(){
+    cards.forEach(function(c){
+      c._done = false; c._ok = false;
+      [].slice.call(c.querySelectorAll("input")).forEach(function(i){ i.checked = false; });
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li){ li.style.background = ""; });
+      var f = c.querySelector(".feedback"); f.className = "feedback"; f.innerHTML = "";
+    });
+    document.getElementById("result").classList.remove("show");
+    cur = 0; show(cur);
+  });
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  show(0);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>概念关系 · Agent、上下文与 Skill</title>
+<link rel="stylesheet" href="assets/style.css" />
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>window.addEventListener('load', () => { if (window.mermaid) mermaid.initialize({startOnLoad:true}); });</script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <div class="kicker">Concept Relationship</div>
+    <h1>Agent、大模型的上下文、Skill 三者关系</h1>
+    <p class="def">Skill 给 Agent 提供"能力"，Agent 在"上下文"这个有限舞台上调用能力与工具完成任务。</p>
+    <div class="meta">生成日期：2026-09-06 · 配套说明见仓库根目录 concept-relationship.md</div>
+  </header>
+
+  <section class="card">
+    <h2><span class="badge">A</span>一句话总览</h2>
+    <ul>
+      <li><b>Agent</b>：干活的智能体，靠"思考 → 行动 → 观察"循环完成任务。</li>
+      <li><b>上下文 Context</b>：Agent 每一步"能看到的工作台"，有限且会衰减的资源。</li>
+      <li><b>Skill</b>：把某类任务的专业知识固化下来的文件包，相关时自动加载、变专家。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">B</span>上下文如何影响 Agent</h2>
+    <p>Agent 的自主循环会把系统指令、工具定义、每一步工具返回、历史、检索资料全部堆进上下文窗口，因此上下文直接决定 Agent 的能力边界：</p>
+    <table>
+      <thead><tr><th>上下文状态</th><th>对 Agent 的影响</th></tr></thead>
+      <tbody>
+        <tr><td>窗口足够、信息精选</td><td>Agent 持续"记得目标、用对工具"，长任务跑得动</td></tr>
+        <tr><td>信息过多未管理</td><td>context rot（越长越准度下降）、Lost in the Middle（中段被忽略）</td></tr>
+        <tr><td>超出窗口上限</td><td>必须压缩/外置/摘要，否则停止或报错</td></tr>
+        <tr><td>错误/幻觉进入上下文</td><td>Context Poisoning，错误被反复复用放大</td></tr>
+      </tbody>
+    </table>
+    <p class="tip">没有好的上下文工程，Agent 越自主越容易"跑偏、变笨、忘事"。</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">C</span>Skill 如何沉淀可复用知识</h2>
+    <ul>
+      <li>把某类任务的专业知识（步骤/注意事项/模板/脚本）固化成目录，核心是 <code>SKILL.md</code>（name + description 元数据 + 正文指令）。</li>
+      <li>三级渐进式披露：未触发只占约 100 token 元数据，命中才读正文，脚本/参考用到才加载——<b>几乎不浪费上下文</b>。</li>
+      <li>知识从"某次对话的提示词"变成"仓库里、可版本化、可分享"的资产，跨会话复用。</li>
+      <li>本仓库的 <code>concept-learning-generator</code> 即此沉淀：学 Agent / 上下文 / Skill 自己，都只需一句"用这个 Skill 学 XXX"。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">D</span>关系图</h2>
+    <div class="diagram">
+      <pre class="mermaid">
+flowchart LR
+    S[Skill 可复用任务知识] -->|按需加载 提供专业指令/脚本| A[Agent 自主循环 思考-行动-观察]
+    A -->|每一步推理都发生在| C[上下文窗口 有限且会衰减]
+    C -->|context rot / Lost in Middle 需压缩·外置·检索| A
+    A -->|调用外部工具/API| T[(环境/工具)]
+    T -->|返回结果| C
+    S -.->|渐进披露 省上下文| C
+      </pre>
+      <p style="color:var(--muted);font-size:13px;margin-top:8px;">若上方图示未渲染（例如离线打开），请见下方文字说明。</p>
+    </div>
+    <div class="note">
+      <p><b>图例解读：</b></p>
+      <p>① <b>Skill → Agent</b>：任务相关时加载，赋予 Agent 特定领域专业知识与流程。</p>
+      <p>② <b>Agent → 上下文</b>：所有推理、工具调用、历史都发生在上下文窗口中，窗口直接约束 Agent。</p>
+      <p>③ <b>上下文 ↔ Agent（回环）</b>：上下文腐化拖垮 Agent，故 Agent 需"上下文工程"反向治理。</p>
+      <p>④ <b>Agent → 工具 → 上下文</b>：工具结果回到上下文，既是"观察"也是下一轮输入，形成闭环。</p>
+      <p>⑤ <b>Skill ⇢ 上下文</b>：Skill 靠渐进式披露，只在必要时占用上下文，避免"装一堆就爆窗"。</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">E</span>个人判断（重点）</h2>
+    <ul>
+      <li><b>上下文是 Agent 的"物理限制"，Skill 是 Agent 的"能力扩展"。</b>一个决定"能不能跑稳"，一个决定"能不能变专业"，缺一不可。</li>
+      <li><b>真正让 Agent 可用的，往往不是模型多大，而是上下文工程做得多好。</b>"长任务忘事、跑偏"的根因几乎都在上下文。</li>
+      <li><b>Skill 的价值在于"把经验变成资产"。</b>可复用、可审查、可进版本库——这也是本仓库存在的意义。</li>
+    </ul>
+  </section>
+
+  <footer class="doc-foot">配套文字版见仓库根目录 concept-relationship.md。来源链接请点击三份学习卡片底部"参考来源"核查。</footer>
+</div>
+</body>
+</html>

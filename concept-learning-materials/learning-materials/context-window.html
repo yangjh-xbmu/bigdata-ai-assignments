@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>概念学习卡片 · LLM 的上下文窗口（Context Window）</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <div class="kicker">Concept Learning Card</div>
+    <h1>LLM 的上下文窗口（Context Window）</h1>
+    <p class="def">一次推理里，模型"看得见"的 token 总预算——输入（系统提示 + 对话历史 + 工具定义 + 检索结果）与模型要生成的输出，共享同一块有限空间 [来源 1][来源 5]。</p>
+    <div class="meta">生成日期：2026-09-10 · 学习视角：AI Agent 工程入门 · 资料来源均为公开可核查链接</div>
+  </header>
+
+  <section class="card">
+    <h2><span class="badge">01</span>学习目标</h2>
+    <ul>
+      <li>理解"上下文窗口"到底装了什么——它不只是用户输入，还包含系统指令、工具定义、检索资料和模型自己的输出，全部竞争同一份 token 预算 [来源 5]。</li>
+      <li>能区分<b>模型上下文窗口（model context window）</b>与<b>有效上下文（effective context）</b>，并解释为什么"窗口很大"不等于"塞满也能用好"（context rot / Lost in the Middle）[来源 1][来源 2]。</li>
+      <li>能算一笔账：按输入 / 输出 / 工具 / 记忆的预算拆窗口，判断某条请求会不会超窗，以及用什么手段（压缩、外置、检索、缓存）把它塞回窗口 [来源 1]。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">02</span>核心问题</h2>
+    <ul>
+      <li>"128K / 200K / 1M tokens"说的到底是<b>输入上限</b>还是<b>输入 + 输出的总和</b>？两者的口径有什么差别？</li>
+      <li>窗口是有限的，但模型的注意力质量是不是随窗口的增大而"摊薄"？什么时候窗口会"名不副实"（effective &lt; model）？</li>
+      <li>当一次请求装不下窗口时，工程上有哪些具体手段？各自适合什么场景？</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">03</span>个人解释</h2>
+    <div class="personal">
+      <p class="who">我的理解：</p>
+      <p>我一开始把"上下文窗口"理解成"模型的记忆力上限"，学完才发现它更像一张<b>物理上就装得有限的 A4 纸</b>——不是模型愿意记多少，而是<b>这张纸只能容纳这么多个字</b>。而且这张纸上不只写"我发给它的问题"，还写满了系统指令（人设、规则）、工具说明书（函数 schema）、检索到的资料、之前每一轮对话，最后还要留空给模型自己写的回答。一旦写满，最老的对话就得被"裁掉"。</p>
+      <p>让我印象最深的是两点。第一，<b>窗口大 ≠ 用得好</b>：就算纸有 1M 字，你把 90 万字塞满后，模型找关键信息的能力也会明显下降（context rot）；而且它尤其容易忽略"中间"那段（Lost in the Middle）——关键信息放在开头和结尾最保险 [来源 1][来源 2]。第二，<b>"模型窗口"和"有效窗口"不是一回事</b>：一个标称 128K 的模型，真正能稳定记住并取用信息的容量常常小得多。所以工程上不能只盯厂商标的那个数字，得按"我最多能可靠用到多少"来做预算 [来源 1]。</p>
+      <p class="reflection">站在大二这个节点回头看，我现在再用 ChatGPT 时，会先想"这一段话会不会把之前重要的东西挤出去"——长对话里它"忘了"前面定的要求，现在我知道那通常是<b>早期内容被挤出窗口</b>，不是它故意敷衍。以后我写提示时会有意识地：把最重要的目标<b>放在开头</b>、结尾前再<b>重申一次</b>、无关的闲聊删掉，本质上就是在做最朴素的"上下文窗口管理"。——杨国美</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">04</span>核心机制 / 组成</h2>
+
+    <p><b>① 它装的是什么</b>：一次推理里共享同一份 token 预算的组件。<b>所有</b>输入组件 + 模型要生成的输出，一起计入窗口 [来源 5]：</p>
+    <ul>
+      <li><b>系统指令</b>（system prompt）：身份、规则、输出格式约定。</li>
+      <li><b>工具 / 函数定义</b>：每个可调用的工具的 schema 都占 token，工具越多占用越大。</li>
+      <li><b>对话 / 任务历史</b>：之前每一轮（用户 + 模型）都在窗口里。</li>
+      <li><b>外部资料</b>：检索（RAG）回来的段落、粘贴的文档、工具调用返回的 JSON。</li>
+      <li><b>模型输出</b>：本次要生成的回答本身也占预算，且<b>输出上限通常远小于窗口</b>——比如 GPT-4o mini 是 128K 窗口、最多 16K 输出 [来源 3]。</li>
+    </ul>
+
+    <p><b>② 为什么窗口是有限的：架构根因</b>。Transformer 中每个 token 都要与上下文里其它 token 做注意力，计算量随序列长度呈 <b>平方级（n²）增长</b> [来源 4]——这就是为什么"无限制窗口"不免费，越大越贵、越慢，注意力也被越摊薄。</p>
+
+    <p><b>③ 两个层次的"窗口"（关键区分）</b>：</p>
+    <ul>
+      <li><b>模型上下文窗口（model context window）</b>：模型架构能装下的硬上限（如 128K / 200K / 1M）。这是厂商标的那个数字 [来源 5]。</li>
+      <li><b>有效上下文（effective context）</b>：模型能<b>可靠利用</b>的那部分，通常 <b>&lt; 模型窗口</b>。窗口越大，"装得下"不等于"用得上"——这是 context rot 的直接后果 [来源 1]。</li>
+    </ul>
+
+    <p><b>④ 两个"装不进用不好"的失败现象</b>：</p>
+    <ul>
+      <li><b>Context Rot（上下文腐化）</b>：随窗口内 token 增多，模型准确召回其中信息的能力下降——所有模型都有，只是程度不同 [来源 1]。</li>
+      <li><b>Lost in the Middle（中间迷失）</b>：模型对"开头 / 结尾"的信息关注度高，对"中段"容易失准；即使标称支持长上下文也如此。对策：关键信息放首尾 [来源 2]。</li>
+    </ul>
+
+    <p><b>⑤ 超窗 / 装不进时的工程手段</b>（对应"上下文工程"）[来源 1]：</p>
+    <table>
+      <thead><tr><th>手段</th><th>做什么</th><th>适合场景</th></tr></thead>
+      <tbody>
+        <tr><td>压缩（Reduce）</td><td>对历史 / 资料做摘要，只留关键结论</td><td>多轮长对话、旧轮次信息可概括</td></tr>
+        <tr><td>外置（Offload）</td><td>大块资料落盘到文件 / 记忆，只把引用进窗口</td><td>大文档、可回溯、反复引用</td></tr>
+        <tr><td>检索（Retrieve）</td><td>按需 RAG，只把相关片段进窗口</td><td>语料海量 / 持续增长 / 需精确溯源</td></tr>
+        <tr><td>隔离（Isolate）</td><td>不同子任务用独立上下文，避免互相污染</td><td>多步 Agent、并行子任务</td></tr>
+        <tr><td>缓存（Cache）</td><td>对稳定内容做提示缓存，省重复消耗</td><td>重复用的系统提示 / 固定参考资料</td></tr>
+      </tbody>
+    </table>
+
+    <div class="diagram">
+      <p style="margin:0 0 6px;color:var(--muted);font-size:14px;">一次推理里的 token 预算分配（示意）</p>
+      <code>[系统指令] + [工具定义] + [历史对话] + [检索资料] → 输入侧（占大部分）
+              [本次要生成的回答] → 输出侧（上限常远小于窗口，如 16K）
+   两者之和 ≤ 模型上下文窗口（如 128K），且"有效可用"往往更小</code>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">05</span>可视化讲解</h2>
+    <p style="color:var(--muted);font-size:14px;">下面用三张纯 HTML/CSS + SVG 的图，把"上下文窗口"最核心的三件事画明白。所有图离线双击即可看，数据口径与正文一致（示意数字均标注）。</p>
+
+    <h3 style="font-size:16px;margin:16px 0 4px;">① 窗口是一份共享/token 预算：输入 + 输出 挤在同一块空间里</h3>
+    <p class="viz-caption">一条 = 模型上下文窗口（示意 128K）。蓝/绿为已占用：系统 + 工具 + 历史对话 + 检索构成<b>输入</b>，绿色<b>输出上限只有 16K</b>（远小于窗口）；条纹空白是还没占满、尚可继续放入的<b>余量</b>。对话越久，输入段越往右顶，余量耗尽即"超窗"。</p>
+    <div class="viz-legend">
+      <span><i style="background:#2f6df0"></i>系统指令 ~4K</span>
+      <span><i style="background:#5b8def"></i>工具定义 ~2K</span>
+      <span><i style="background:#93b4f5"></i>历史对话 ~40K</span>
+      <span><i style="background:#bcd3f9"></i>检索资料 ~20K</span>
+      <span><i style="background:repeating-linear-gradient(45deg,#eef1f6 0 6px,#f6f8fb 6px 12px)"></i>还可用的余量</span>
+      <span><i style="background:#1f8a5b"></i>模型输出 ~16K</span>
+    </div>
+    <div class="viz-bar">
+      <div class="viz-bar-row">
+        <div class="viz-bar-label">窗口预算</div>
+        <div class="viz-bar-track">
+          <span class="seg" style="left:0;width:3.125%;background:#2f6df0" title="系统指令 ~4K"></span>
+          <span class="seg" style="left:3.125%;width:1.5625%;background:#5b8def;border-radius:0" title="工具定义 ~2K"></span>
+          <span class="seg" style="left:4.6875%;width:31.25%;background:#93b4f5;border-radius:0" title="历史对话 ~40K（随轮次增长）"></span>
+          <span class="seg" style="left:35.9375%;width:15.625%;background:#bcd3f9;border-radius:0" title="检索 / 工具返回 ~20K"></span>
+          <span class="seg" style="left:51.5625%;width:35.9375%;background:repeating-linear-gradient(45deg,#eef1f6 0 6px,#f6f8fb 6px 12px);border:1px dashed var(--line);border-radius:0" title="还可用的余量"></span>
+          <span class="seg" style="left:87.5%;width:12.5%;background:#1f8a5b;border-radius:0 5px 5px 0" title="输出 ~16K"></span>
+        </div>
+        <div class="viz-bar-val">128K</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:16px;margin:20px 0 4px;">② "模型窗口" ≠ "有效上下文"：装得下的，未必用得完</h3>
+    <p class="viz-caption">上条是架构硬上限，下条是模型能可靠取用的部分（橙色竖线为"有效"边界）。</p>
+    <div class="viz-bar">
+      <div class="viz-bar-row">
+        <div class="viz-bar-label">模型窗口</div>
+        <div class="viz-bar-track"><span class="seg" style="width:98%"></span></div>
+        <div class="viz-bar-val">128K</div>
+      </div>
+      <div class="viz-bar-row">
+        <div class="viz-bar-label">有效可用</div>
+        <div class="viz-bar-track"><span class="seg" style="width:52%;background:#f0a35e"></span><span class="viz-bar-eval"></span></div>
+        <div class="viz-bar-val">~64K</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:16px;margin:20px 0 4px;">③ Lost in the Middle：关键信息放"首尾"最保险</h3>
+    <p class="viz-caption">横轴为关键信息所在位置，纵轴为模型利用率；中段出现"低谷"，放那里最易被忽略（曲线为示意形状）[来源 2]。</p>
+    <div class="viz-spectrum">
+      <svg viewBox="0 0 600 150" width="100%" role="img" aria-label="Lost in the Middle 利用率先升后降再升的示意图，中间形成低谷">
+        <defs>
+          <linearGradient id="vizCurve" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#2f6df0"/>
+            <stop offset="0.3" stop-color="#2f6df0"/>
+            <stop offset="0.5" stop-color="#e07b2a"/>
+            <stop offset="0.7" stop-color="#2f6df0"/>
+            <stop offset="1" stop-color="#2f6df0"/>
+          </linearGradient>
+        </defs>
+        <!-- 坐标轴 -->
+        <line x1="48" y1="16" x2="48" y2="118" stroke="#cbd5e1" stroke-width="1"/>
+        <line x1="48" y1="118" x2="560" y2="118" stroke="#cbd5e1" stroke-width="1"/>
+        <!-- 中段低谷底影 -->
+        <rect x="200" y="54" width="200" height="64" fill="#fdf0e6"/>
+        <!-- 利用率曲线：两端高、中间低 -->
+        <path d="M 60 40 Q 150 46 220 92 Q 300 110 360 92 Q 470 46 552 40"
+              fill="none" stroke="url(#vizCurve)" stroke-width="4" stroke-linecap="round"/>
+        <!-- 位置标注 -->
+        <text x="70" y="138" font-size="13" fill="#5b6772">开头</text>
+        <text x="290" y="138" font-size="13" fill="#b8541b" font-weight="700">中段</text>
+        <text x="522" y="138" font-size="13" fill="#5b6772">结尾</text>
+        <text x="14" y="66" font-size="11" fill="#5b6772" transform="rotate(-90 20 66)" text-anchor="middle">利用率</text>
+        <text x="304" y="78" font-size="12" fill="#b8541b" text-anchor="middle">容易被忽略</text>
+      </svg>
+    </div>
+    <div class="note" style="font-size:14px;">
+      <p style="margin:0;"><b>纯文字兜底（离线 / 图不显示时看这里）：</b>模型对上下文<b>开头和结尾</b>的信息利用率高，对<b>中段</b>利用率明显下降（呈"U 形"）。所以重要目标、结论、"请严格遵守"这类指令应放在<b>首尾</b>，可容错的细节放中间。</p>
+    </div>
+  </section>
+
+  <section class="card">
+  <section class="card">
+    <h2><span class="badge">06</span>应用场景（具体例子）</h2>
+    <p><b>场景：</b>一个客服 Agent，用 GPT-4o mini（窗口 128K），要处理一段平均 80 轮的长对话，每轮约 300 token（用户 + 机器人），外加 4K 的系统人设、6 个工具定义共约 2K，还要留给回答 16K 输出预算。</p>
+    <ul>
+      <li><b>算账：</b>固定开销 ≈ 4K(系统) + 2K(工具) + 16K(预留输出) = 22K。剩下给对话 ≈ 128K − 22K = <b>106K</b>，约能装 106K / 300 ≈ <b>350 轮</b>——但真实里一旦要检索订单、拉日志，token 暴涨，实际可用轮数远低于此。</li>
+      <li><b>窗口快满时的做法：</b>① 对早期 200 轮做<b>摘要压缩</b>，保留"用户要退货、已查订单号 X"这类关键结论（Reduce）；② 把完整订单 / 日志<b>外置</b>到文件系统，只对模型说"订单详情已存 /orders/123"，需要时再取（Offload）；③ 把"当前最该解决的核心诉求"重写到对话<b>末尾</b>，避免它沉到中段被忽略（对抗 Lost in the Middle）[来源 1][来源 2]。</li>
+      <li><b>结果：</b>在不丢关键事实的前提下把上下文压回窗口内，回答仍然"记得用户要退货"，而不是重复问"请问您想做什么"。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">07</span>易混淆 / 使用边界</h2>
+    <div class="note">
+      <p><b>① "模型窗口" ≠ "有效上下文"。</b>1M 的标称窗口不意味着模型能稳定记住并取用 1M。做容量规划要看<b>有效</b>容量（通常更小），别按标称数字把关键信息排在很远的位置 [来源 1]。</p>
+      <p><b>② "窗口" ≠ "记忆"。</b>上下文窗口是<b>单次推理的临时视野</b>，推理结束就没了；它不是跨会话的长期记忆。长期记忆要靠外置（文件 / 向量库 / 记忆模块）。</p>
+      <p><b>③ "窗口" ≠ "输入上限"。</b>很多资料（如 OpenAI 给 GPT-4o 的 128K）指的口径是<b>输入 + 输出的总和</b>。做请求前务必确认：你看到的是"输入上限"还是"总预算"，否则一算会超窗 [来源 3][来源 5]。</p>
+      <p><b>④ "窗口越大越好" 是误区。</b>窗口放大带来更高的<b>成本</b>（按 token 计费）与<b>延迟</b>（n² 注意力），且不一定提升质量（context rot / Lost in the Middle）。够用即可，超出部分用压缩 / 外置 / 检索解决 [来源 1][来源 2][来源 4]。</p>
+      <p><b>⑤ 长上下文 ≠ RAG 的替代品，而是互补。</b>文档少且稳定可整段放窗口；海量 / 持续增长 / 需精确溯源必须靠 RAG。窗口再大也装不下"整个互联网 + 所有历史"。</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">08</span>自测问题</h2>
+    <p style="color:var(--muted);font-size:14px;">覆盖四个维度：概念辨析 / 核心机制 / 应用 / 风险边界。建议先盖住答案自测，再点开核对。</p>
+
+    <details>
+      <summary>Q1（简答·机制）：一次推理里，除"用户输入"外，通常还有哪些东西一起占用上下文窗口？</summary>
+      <div class="ans"><b>答：</b>系统指令（人设 / 规则）、工具 / 函数定义（schema）、对话与任务历史、检索 / 工具返回的外部资料，以及<b>模型本次要生成的输出</b>——全部计入同一份 token 预算 [来源 5]。</div>
+    </details>
+    <details>
+      <summary>Q2（简答·概念辨析）："模型上下文窗口"和"有效上下文"分别指什么？为什么说两者不是一回事？</summary>
+      <div class="ans"><b>答：</b>模型上下文窗口是架构能装下的<b>硬上限</b>（如 128K / 1M）；有效上下文是模型能<b>可靠取用</b>的那部分，通常更小。标称越大，越容易"装得下但用不上"，因为长上下文会 context rot、中间信息易被忽略 [来源 1][来源 2]。</div>
+    </details>
+    <details>
+      <summary>Q3（简答·风险边界）：什么是 context rot？它说明了"把窗口开到最大"能根治所有长对话问题吗？</summary>
+      <div class="ans"><b>答：</b>context rot 指窗口内 token 一多，模型准确召回其中信息的能力下降，所有模型都有、程度不同。开大窗口不能根治——只会推迟、不消除问题，正确做法是<b>上下文工程</b>（压缩 / 外置 / 检索 / 隔离 / 缓存）[来源 1]。</div>
+    </details>
+    <details>
+      <summary>Q4（简答·机制）：Lost in the Middle 观察到了什么现象？由此得到的"排版"建议是什么？</summary>
+      <div class="ans"><b>答：</b>模型对<b>开头与结尾</b>的信息利用最好，对<b>中段</b>信息利用率明显下降，即使长上下文模型也如此。建议：把最关键的目标 / 结论放在<b>首尾</b>，中间放可容错的内容 [来源 2]。</div>
+    </details>
+    <details>
+      <summary>Q5（选择·概念辨析）：下列关于"上下文窗口"的说法，正确的是？</summary>
+      <div class="ans"><b>答：正确答案 B。</b><br/>
+        A. "上下文窗口就是用户的输入上限" —— 错，输入 + 输出（以及系统 / 工具 / 历史）共享同一预算 [来源 5]。<br/>
+        <b>B. "上下文窗口是模型一次推理能纳入的最大 token 量，输入和输出共享它"</b> —— 对 [来源 5]。<br/>
+        C. "窗口越大，模型一定能记住并使用全部信息" —— 错，存在有效上下文 &lt; 模型窗口、context rot、Lost in the Middle [来源 1][来源 2]。<br/>
+        D. "上下文窗口是跨会话的长期记忆" —— 错，它是单次推理的临时视野，结束即清零。</div>
+    </details>
+    <details>
+      <summary>Q6（选择·风险边界）：一个 Agent 多轮执行后回答越来越偏题、开始"忘记最初目标"，最可能的主因和对症手段是？</summary>
+      <div class="ans"><b>答：正确答案 B。</b><br/>
+        A. "模型权重损坏，需更换模型" —— 无关，是窗口管理问题。<br/>
+        <b>B. "早期目标被挤出 / 沉到中段，做摘要压缩 + 把核心目标重写到末尾"</b> —— 对，对应 Reduce 与对抗 Lost in the Middle [来源 1][来源 2]。<br/>
+        C. "把 max_tokens 改大就行" —— 错，那扩的是输出侧，不能救输入侧的目标丢失。<br/>
+        D. "把窗口换成更大的模型就一劳永逸" —— 错，context rot 依然存在，正确做法是上下文工程 [来源 1]。</div>
+    </details>
+    <details>
+      <summary>Q7（应用·设计）：你要用 Claude（窗口 200K）让模型通读一份 600 页产品手册并回答"退款政策"相关问题。直接整本粘贴显然不现实，请给出<b>两种以上</b>工程手段并说明理由。</summary>
+      <div class="ans"><b>答题要点：</b><br/>
+        ① <b>检索（RAG）</b>——把手册分块索引，按问题只把"退款"相关段落拉进窗口，避免塞 600 页（手册远超有效可用，context rot 会拉低召回）。<br/>
+        ② <b>外置（Offload）</b>——手册落盘到文件 / 向量库，窗口里只放"已存 index 路径"，模型按需引用。<br/>
+        ③ <b>排版</b>——把用户当前问题与"请严格按手册作答"放在上下文<b>首尾</b>，避开中段盲区。<br/>
+        ④ 若后续还要反复问同一手册，用<b>缓存</b>固定住公共部分，省 token 与延迟。</div>
+    </details>
+    <details>
+      <summary>Q8（应用·评价）：同事说："我把模型从 128K 升到 1M，以后就不用做检索了，所有资料一股脑塞进去最省心。"请结合本资料指出这个说法的问题。</summary>
+      <div class="ans"><b>答题要点：</b><br/>
+        ① <b>窗口大 ≠ 用得好</b>——有效上下文通常远小于标称值，塞满后 context rot 会让召回下降 [来源 1]。<br/>
+        ② <b>成本 / 延迟</b>：按 token 计费 + n² 注意力，1M 窗口单次请求成本和延迟都显著上升 [来源 4][来源 5]。<br/>
+        ③ <b>信息组织</b>：全量塞入还会触发 Lost in the Middle，关键结论若在中段易被忽略 [来源 2]。<br/>
+        ④ 正确策略是<b>按量选型</b>：资料少且稳定就放窗口；海量 / 增长 / 需精确溯源就 RAG；用压缩 + 外置 + 检索 + 缓存组合做"上下文工程"，而不是靠堆窗口。</div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">09</span>参考来源（均可点击核查）</h2>
+    <ol class="refs">
+      <li>Anthropic，《Effective context engineering for AI agents》<span class="src-type">[官方工程博客，2025，主来源 —— "上下文窗口 / context rot / 有效上下文"定义]</span><br/><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</a></li>
+      <li>Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., Bevilacqua, M., Petroni, F., Liang, P.，《Lost in the Middle: How Language Models Use Long Contexts》<span class="src-type">[arXiv 2307.03172，2023，"中间迷失"现象奠基论文]</span><br/><a href="https://arxiv.org/abs/2307.03172" target="_blank" rel="noopener">https://arxiv.org/abs/2307.03172</a></li>
+      <li>OpenAI，《GPT-4o mini: advancing cost-efficient intelligence》<span class="src-type">[官方公告，2024-07，"128K 窗口 / 16K 输出"具体示例]</span><br/><a href="https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/" target="_blank" rel="noopener">https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/</a></li>
+      <li>Vaswani, A. et al.，《Attention Is All You Need》<span class="src-type">[arXiv 1706.03762，2017，Transformer 注意力机制 / n² 复杂度根因]</span><br/><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">https://arxiv.org/abs/1706.03762</a></li>
+      <li>Claude Platform Docs，《Context windows》<span class="src-type">[官方文档，"所有输入输出组件计入窗口 / 输出计费"口径说明]</span><br/><a href="https://platform.claude.com/docs/en/build-with-claude/context-windows" target="_blank" rel="noopener">https://platform.claude.com/docs/en/build-with-claude/context-windows</a></li>
+      <li>Towards Data Science，《De-Coded: Understanding Context Windows for Transformer Models》<span class="src-type">[技术博客，token 化 / 输入输出预算的通俗化解释]</span><br/><a href="https://towardsdatascience.com/de-coded-understanding-context-windows-for-transformer-models-cd1baca6427e/" target="_blank" rel="noopener">https://towardsdatascience.com/de-coded-understanding-context-windows-for-transformer-models-cd1baca6427e/</a></li>
+    </ol>
+  </section>
+
+  <footer class="doc-foot">本资料由 concept-learning-generator Skill 生成草稿，并经本人阅读核查与改写。来源链接请自行点击验证。</footer>
+</div>
+</body>
+</html>

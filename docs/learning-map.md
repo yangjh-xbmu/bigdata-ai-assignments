@@ -1,0 +1,85 @@
+# Python 基础 · 4 次课学习地图
+
+> 《大数据与人工智能》课程前置模块
+> 本模块 4 次课（8 × 45 分钟，共 360 分钟），目标是**掌握足够用的 Python 基础**，为后续 9 次课的人工智能理论与应用扫清语法障碍。
+
+## 一、定位
+
+整个学期剩余 **13 次课**，其中：
+
+| 阶段 | 课次 | 内容 |
+| --- | --- | --- |
+| 本次模块 | 第 1–4 次课 | Python 基础（本文件） |
+| 后续模块 | 第 5–13 次课 | 人工智能理论与应用（情感分析、文本分类等） |
+
+本模块**不含任何 AI 内容**。`numpy` / `pandas` / `matplotlib` / `scikit-learn` 一律划归后续 AI 课，本模块只在 U6 演示一次「装库 + 导入」的流程。
+
+## 二、八个单元总览
+
+| 单元 | 课次 | 主题 | 阶段 |
+| --- | --- | --- | --- |
+| U1 | 第 1 次课 上半 | 变量 · 类型 · 输入输出 | 语言核心 |
+| U2 | 第 1 次课 下半 | 字符串 · 列表 | 语言核心 |
+| U3 | 第 2 次课 上半 | 条件 · 循环 | 语言核心 |
+| U4 | 第 2 次课 下半 | 字典 · 集合 · 推导式 | 语言核心 |
+| U5 | 第 3 次课 上半 | 函数 | 语言核心 |
+| U6 | 第 3 次课 下半 | 模块 · 标准库 · pip | 工程能力 |
+| U7 | 第 4 次课 上半 | 文件读写 · 异常处理 | 工程能力 |
+| U8 | 第 4 次课 下半 | 类与对象 · 调试 | 工程能力 |
+
+**切分比例**：语言核心 5 单元（225 分钟）／工程能力 3 单元（135 分钟）。
+语言核心解决「读得懂代码」，工程能力解决「跑得通代码」——后续 AI 课的时间大头在建模，基础库的用法必须在这里打通。
+
+## 三、单元明细与下游衔接
+
+| 单元 | 讲什么 | 课堂产出 | 后面哪一步要用它 | 学习资料 |
+| --- | --- | --- | --- | --- |
+| U1 变量·类型·输入输出 | Notebook 环境；int/float/str/bool；赋值与运算；print/input；f-string | 算出一个数据集的平均分 | 一切的地基：读任何字段先要认类型 | [01](python-basics/01-variables-types-io.html) |
+| U2 字符串·列表 | 索引与切片；`split` `join` `strip` `replace`；list 增删改查、遍历 | 把一句评论切成词表，取前 5 个 | 数据清洗里的文本列操作 | [02](python-basics/02-strings-lists.html) |
+| U3 条件·循环 | if/elif/else、布尔逻辑；`for` `range` `enumerate` `zip`；while、break/continue | 筛出评分 < 3 的记录并计数 | 数据筛选、批量遍历 | [03](python-basics/03-conditionals-loops.html) |
+| U4 字典·集合·推导式 | dict 计数法、set 去重、嵌套结构、列表/字典推导式、`sorted(key=)` | 统计词频并输出 Top 10 | 特征统计、标签分布、词频 | [04](python-basics/04-dict-set-comprehension.html) |
+| U5 函数 | def、四种参数、返回值、作用域、lambda、docstring | 把 U2–U4 的逻辑封装成三个函数 | 把清洗、特征、评估写成可复用函数 | [05](python-basics/05-functions.html) |
+| U6 模块·标准库·pip | import 四种写法；`os` `pathlib` `re` `json` `datetime`；pip 与 venv；写自己的 .py 模块 | 用 `re` 从一段脏文本里抽出所有数字 | 装 sklearn / jieba / torch，导入即用 | [06](python-basics/06-modules-stdlib-pip.html) |
+| U7 文件读写·异常处理 | `open`/`with`、编码、CSV/JSON 读写、路径拼接；try/except、读 traceback | 读 CSV 跳过坏行，统计不崩 | 载入数据集、容错、调 bug | [07](python-basics/07-files-exceptions.html) |
+| U8 类与对象·调试 | class、`__init__`、self、属性与方法、实例化；断点调试、常见错误类型 | 自己写一个类，并解释 sklearn 的 fit/predict | 看懂 `model.fit(X, y)` 这类 API 语法 | [08](python-basics/08-classes-debugging.html) |
+
+## 四、每 45 分钟的节奏
+
+| 时段 | 时长 | 做什么 |
+| --- | --- | --- |
+| 讲 | 20 min | 只讲能立刻用上的部分，边说边在 Notebook 里敲 |
+| 敲 | 20 min | 学生自己写，教师巡场 |
+| 收 | 5 min | 小结 + **故意制造一个报错，带学生读 traceback** |
+
+最后 5 分钟读报错是固定动作。这件事后面能省下大量答疑时间。
+
+## 五、不讲清单
+
+只有 4 次课，以下一律不讲：
+
+- 装饰器、生成器、迭代器协议
+- 多线程 / 多进程 / 异步
+- 继承与多态（只讲单类，不碰继承）
+- 正则高级用法（只教 `re.findall` 与 `re.sub`）
+- 类型注解
+- `numpy` / `pandas` / `matplotlib` / `scikit-learn`（划归后续 AI 课）
+
+## 六、结课验收题
+
+第 4 次课最后一题。给定 `movies.csv`（`film`、`type`、`rating`、`year`、`comment` 五列，故意掺入空行与脏 `rating`），写出脚本完成：
+
+1. 读取文件，跳过坏行
+2. 求出平均 `rating`
+3. 按 `type` 分组计数
+4. 输出 `comment` 最长那条的前 10 个字
+
+这一题串起 U1–U7，做不出来就是没到「够用」。它同时也是后续 AI 课「数据清洗」那节的提前预演。
+
+## 七、待确认的前提
+
+1. **后续 9 次课的结构**按「数据采集 → 清洗 → 可视化 → 机器学习 → 深度学习 + NLP 应用」假设（依据 `assignments/01–05`）。若实际顺序不同，「下游衔接」一列需重排。
+2. **学生基础**若为零基础，U1 需加时；若已有编程底子，U1+U2 可合并为一个单元，省下的 45 分钟补给 U8 的类与调试。
+
+---
+
+学习中使用的图解学习资料见 [`python-basics/index.html`](python-basics/index.html)。

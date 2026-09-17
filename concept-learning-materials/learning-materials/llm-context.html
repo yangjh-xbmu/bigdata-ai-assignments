@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>概念学习卡片 · 大模型的上下文（Context）</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <div class="kicker">Concept Learning Card</div>
+    <h1>大模型的上下文（Context / 上下文窗口）</h1>
+    <p class="def">模型在生成下一段内容时，当前"能看到"的全部 token 集合；而"上下文工程"研究如何在每一步只放入最合适的信息。</p>
+    <div class="meta">生成日期：2026-09-06 · 学习视角：AI Agent 工程入门 · 资料来源均为公开可核查链接</div>
+  </header>
+
+  <section class="card">
+    <h2><span class="badge">01</span>学习目标</h2>
+    <ul>
+      <li>理解"上下文窗口"到底是什么，它由哪些部分构成（输入、输出、工具调用、检索结果……）。</li>
+      <li>能解释为什么上下文是<b>有限且会衰减</b>的资源（context rot / Lost in the Middle）。</li>
+      <li>说清"上下文工程（Context Engineering）"与"提示工程（Prompt Engineering）"的关系与区别。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">02</span>核心问题</h2>
+    <ul>
+      <li>模型一次能处理的 token 上限，真的是"越大越好、随便塞"吗？</li>
+      <li>为什么 Agent 跑久了会"变笨"或"忘事"？这和上下文有什么关系？</li>
+      <li>当信息太多放不进窗口时，工程上有哪些办法（压缩 / 外置 / 检索）？</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">03</span>个人解释</h2>
+    <div class="personal">
+      <p class="who">我的理解：</p>
+      <p>我觉得把"上下文"想成<b>模型此刻的工作台 / 白板</b>最贴切：上面写满了系统指令、对话历史、工具返回、检索到的资料。模型每一步推理都只能看这块白板。白板擦满后，旧信息就得被挤掉或 summarizing 掉。</p>
+      <p>我最大的收获是：<b>上下文不是越大越省事</b>。窗口再大，塞太多也会"注意力分散"（context rot），而且中间的内容常常被忽略（Lost in the Middle）。所以真正重要的能力是<b>上下文工程</b>——在每一步，只把"恰好对下一步有用"的信息放上去。Karpathy 对它的定义我特别喜欢：<i>"在大模型上下文窗口里，放入正好适合它执行下一步所需的信息。"</i></p>
+      <p class="reflection">站在大二这个节点回头看，上下文其实早就藏在我用过的每一次 ChatGPT 里——比如它"忘记"上面聊过的内容，往往就是上下文被挤出去了。学完才明白这不是 bug，而是窗口有限。以后我再让 AI 处理长材料时，会有意识地把关键信息放前面、把无关内容删掉，也算用上了"上下文工程"的一点直觉。——杨国美</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">04</span>核心机制 / 组成</h2>
+    <p><b>① 上下文窗口（Context Window）</b>：模型单次推理能纳入的最大 token 量。它包含的不只是用户输入，还有系统提示、工具/函数定义、历史消息、检索到的文档、以及模型自己的输出。<b>它相当于模型的"短期记忆"</b>，受 Transformer 架构限制 [来源 4]。</p>
+
+    <p><b>② 为什么上下文是"有限且会衰减"的资源</b>：</p>
+    <ul>
+      <li><b>架构约束</b>：Transformer 中每个 token 都要和上下文中其他所有 token 做注意力（n² 关系），上下文越长，注意力越被摊薄。</li>
+      <li><b>Context Rot（上下文腐化）</b>：随着上下文 token 增多，模型准确回忆其中信息的能力下降——所有模型都有，只是程度不同 [来源 1]。</li>
+      <li><b>Lost in the Middle</b>：模型对长文本"开头和结尾"关注度高，对"中段"容易忽略，所以关键信息应放在首尾 [来源 3]。</li>
+    </ul>
+
+    <p><b>③ 上下文工程（Context Engineering）</b>：Anthropic 将其定义为<b>"在 LLM 推理过程中，策划与维护最优 token 集合（信息）的策略，包含提示之外落入上下文的所有内容"</b>[来源 1]。它是提示工程的自然演进：</p>
+    <table>
+      <thead><tr><th>维度</th><th>提示工程 Prompt Engineering</th><th>上下文工程 Context Engineering</th></tr></thead>
+      <tbody>
+        <tr><td>关注点</td><td>怎么写好一条指令</td><td>每一步该往窗口里放什么信息</td></tr>
+        <tr><td>范围</td><td>单次输入</td><td>系统指令 + 工具 + MCP + 外部数据 + 历史……全栈信息流</td></tr>
+        <tr><td>适用</td><td>单轮问答、文本生成</td><td>多轮、长周期、自主 Agent</td></tr>
+      </tbody>
+    </table>
+
+    <p><b>④ 常用的上下文工程手法</b>（业界归纳为 Offload / Reduce / Retrieve / Isolate / Cache）：把不常用的大块信息<b>外置到文件系统</b>（Offload）、对历史做<b>摘要压缩</b>（Reduce）、按需<b>检索</b>相关内容（Retrieve）、把不同任务上下文<b>隔离</b>（Isolate）、对稳定内容做<b>缓存</b>（Cache）[来源 5]。</p>
+
+    <div class="diagram">
+      <p style="margin:0 0 6px;color:var(--muted);font-size:14px;">一次推理的上下文由哪些部分组成</p>
+      <code>[系统指令] + [工具/MCP 定义] + [检索到的外部知识] + [对话/任务历史] + [上一步工具结果] → 模型采样</code>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">05</span>应用场景（具体例子）</h2>
+    <p><b>场景：</b>一个跑 50 步工具调用的深度研究 Agent。</p>
+    <ul>
+      <li><b>问题：</b>每一步工具返回动辄上千 token，跑几十步后上下文直接爆窗，且越往后越容易"偏离主题、忘了最初目标"。</li>
+      <li><b>上下文工程怎么做：</b>① 把完整网页/文件<b>外置</b>到沙盒文件系统，只留 URL + 摘要进上下文（Offload）；② 定期对早期对话做<b>压缩摘要</b>（Reduce）；③ 把"总目标/待办清单"重写到上下文<b>末尾</b>，对抗 Lost in the Middle；④ 只在当前子任务需要时<b>检索</b>对应资料（Retrieve）。</li>
+      <li><b>效果：</b>在不丢失原始数据的前提下，把上下文控制在窗口内，且模型始终"记得自己要干嘛"。这正是 Manus、Claude Code 等产品的核心工程能力 [来源 5]。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">06</span>易混淆 / 使用边界</h2>
+    <div class="note">
+      <p><b>① "窗口大" ≠ "可以乱塞"。</b>200K 甚至更大的窗口仍会 context rot；盲目全量塞入既贵又降质。</p>
+      <p><b>② 上下文工程 ≠ 提示工程，而是它的超集。</b>好的上下文工程仍然需要好的 system prompt，但它管的是"prompt 之外的所有信息流"。</p>
+      <p><b>③ 长上下文 vs RAG 不是二选一。</b>文档少而稳定可直接放长上下文；文档海量或持续增长必须用 RAG 检索；需要精确溯源时 RAG 更优 [来源 3]。</p>
+      <p><b>④ 上下文中毒（Context Poisoning）。</b>错误/幻觉信息一旦进入上下文，会被 Agent 反复复用并放大，所以外置原始数据、保留可回溯很重要。</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">07</span>自测问题</h2>
+    <details>
+      <summary>Q1：上下文窗口里装的不只是"用户输入"，还通常包含哪些内容？</summary>
+      <div class="ans"><b>答：</b>系统指令、工具/MCP 定义、检索到的外部知识、对话与任务历史、上一步的工具返回结果，以及模型自身的输出。</div>
+    </details>
+    <details>
+      <summary>Q2：什么是 context rot？它意味着"把窗口开到最大"就能解决问题吗？</summary>
+      <div class="ans"><b>答：</b>context rot 指随上下文 token 增多，模型准确回忆信息的能力下降。开大窗口不能根治——所有模型都有此现象，只是程度不同，因此需要做上下文工程（筛选/压缩/外置信息）。</div>
+    </details>
+    <details>
+      <summary>Q3：Karpathy 对 context engineering 的著名一句话定义是什么？</summary>
+      <div class="ans"><b>答：</b>"在大语言模型的上下文窗口中，放入正好适合它执行下一步所需的信息（filling an LLM's context window with just the right information for the next step）。"</div>
+    </details>
+    <details>
+      <summary>Q4：当信息太多放不进窗口，工程上常见的 5 类手法是哪几个？</summary>
+      <div class="ans"><b>答：</b>Offload（外置到文件/记忆）、Reduce（摘要压缩）、Retrieve（按需检索）、Isolate（隔离不同任务上下文）、Cache（缓存稳定内容）。</div>
+    </details>
+    <details>
+      <summary>Q5（选择题·概念辨析）：下列关于"上下文工程"与"提示工程"的关系，哪项正确？</summary>
+      <div class="ans"><b>答：</b>正确答案 <b>B</b>。上下文工程是提示工程的超集——它管的是"prompt 之外的所有信息流"（工具、MCP、外部数据、历史等）。A 错在"无关"；C 错在颠倒；D 错在"只管输出"。</div>
+    </details>
+    <details>
+      <summary>Q6（选择题·风险边界）：关于"上下文中毒（Context Poisoning）"，下列说法正确的是？</summary>
+      <div class="ans"><b>答：</b>正确答案 <b>B</b>。错误/幻觉信息一旦进入上下文，会被 Agent 反复复用并放大。A 错在"窗口大就不会"；C 错在"不累积"；D 错在归因为硬件。</div>
+    </details>
+    <details>
+      <summary>Q7（应用题）：你用 Agent 读一份 200 页 PDF 并写摘要，跑几步后它开始"忘了最初要问的问题"、回答越来越偏。请结合本资料给出至少两种工程手段及理由。</summary>
+      <div class="ans"><b>答题要点：</b>①Reduce/摘要——定期对早期对话做压缩摘要，保留关键结论；②把"总目标/待办清单"重写到上下文末尾，对抗 Lost in the Middle；③Offload——把完整 PDF 外置到文件，只留 URL+摘要进上下文；④若错误已混入，清理上下文、外置原始数据避免中毒被放大。</div>
+    </details>
+    <details>
+      <summary>Q8（应用题）：同学说"我把上下文窗口开到 200K，就能把所有资料都塞进去，不用做检索了"。请用本资料概念评价这个说法并指出风险。</summary>
+      <div class="ans"><b>答题要点：</b>窗口大≠可以乱塞；200K 仍会 context rot；全量塞入既贵又降质；长文本中段易被忽略（Lost in the Middle）；文档海量/持续增长时仍应 RAG 检索；正确做法是"上下文工程"而非堆窗口。</div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">08</span>参考来源（均可点击核查）</h2>
+    <ol class="refs">
+      <li>Anthropic，《Effective context engineering for AI agents》<span class="src-type">[官方工程博客，2025-09-29，主来源]</span><br/><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</a></li>
+      <li>Weaviate，《Context Engineering》<span class="src-type">[技术博客，含上下文窗口与六大支柱]</span><br/><a href="https://weaviate.io/blog/context-engineering" target="_blank" rel="noopener">https://weaviate.io/blog/context-engineering</a></li>
+      <li>AWS 中国，《Agentic AI 基础设施实践经验系列（九）：Context Engineering 上下文工程》<span class="src-type">[中文实践综述]</span><br/><a href="https://aws.amazon.com/cn/blogs/china/agentic-ai-infrastructure-practice-series-nine-context-engineering" target="_blank" rel="noopener">https://aws.amazon.com/cn/blogs/china/agentic-ai-infrastructure-practice-series-nine-context-engineering</a></li>
+      <li>Vaswani et al.，《Attention Is All You Need》<span class="src-type">[arXiv 1706.03762，Transformer/注意力机制奠基论文]</span><br/><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">https://arxiv.org/abs/1706.03762</a></li>
+      <li>BAAI 智源社区，《扒完全网最强 AI 团队的 Context Engineering 攻略》<span class="src-type">[汇总 Karpathy / Manus / Anthropic / Chroma 实践]</span><br/><a href="https://hub.baai.ac.cn/view/49301" target="_blank" rel="noopener">https://hub.baai.ac.cn/view/49301</a></li>
+    </ol>
+  </section>
+
+  <footer class="doc-foot">本资料由 concept-learning-generator Skill 生成草稿，并经本人阅读核查与改写。来源链接请自行点击验证。</footer>
+</div>
+</body>
+</html>

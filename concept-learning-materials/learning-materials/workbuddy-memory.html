@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>概念学习卡片 · WorkBuddy 的记忆系统（Memory System）</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <div class="kicker">Concept Learning Card</div>
+    <h1>WorkBuddy 的记忆系统 (Memory System)</h1>
+    <p class="def">基于 TencentDB Agent Memory 构建的团队级/智能体级记忆枢纽，通过将零散的对话、文档与代码沉淀为四类可复用、可共享、受治理的记忆资产（Chat Memory、Skill、Wiki、Code-Graph），实现“一次讲解，长期复用；一人踩坑，全队防雷”。</p>
+    <div class="meta">生成日期：2026-09-10 · 学习视角：AI Agent 工程入门 · 资料来源均为公开可核查链接</div>
+  </header>
+
+  <section class="card">
+    <h2><span class="badge">01</span>学习目标</h2>
+    <ul>
+      <li><b>理解记忆的多维资产属性</b>：说出 WorkBuddy 记忆系统如何超越传统“聊天日志”，将其转化为 Chat Memory, Skill, Wiki 和 Code-Graph 四大核心资产 [来源 1]。</li>
+      <li><b>掌握记忆的分层渐进式提炼机制</b>：解释记忆如何从 L0 原始对话，经异步管道层层净化，最终固化为 L1 原子事实、L2 场景知识与 L3 长期画像 [来源 1]。</li>
+      <li><b>具备冷启动与资产共享的工程思维</b>：能够说明如何将现有代码仓库与文档通过“Save File”方式瞬间加载给新 Agent 团队，并理解其基于角色和 ACL 的权限治理边界 [来源 1]。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">02</span>核心问题</h2>
+    <ul>
+      <li><b>为什么有了大模型的“超长上下文窗口”，Agent 依然需要一个独立的“记忆系统”？</b> 是为了省钱、省时间，还是解决了更深层的认知衰减问题（Context Rot / Lost in the Middle）？</li>
+      <li><b>WorkBuddy 的四种记忆资产各自解决了什么维度的问题？</b> 当 Agent 要修改代码时、当它要遵循发布流程时、当它需要记住用户偏好时，分别调用哪类记忆？</li>
+      <li><b>如何防止 Agent 的记忆发生“隐私泄漏”或“多 Agent 认知污染”？</b> 团队中不同角色的 Agent 是如何通过“装备（Equip）”与 ACL 机制实现体验隔离与经验流动的？</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">03</span>个人解释</h2>
+    <div class="personal">
+      <p class="who">我的理解：</p>
+      <p>我以前觉得 AI 的记忆就是把历史聊天记录原封不动地存到数据库里，每次聊天再打包塞回去。看完 WorkBuddy 的记忆系统，我发现这种做法太业余了。这就像为了让新员工熟悉业务，直接把公司过去 10 年所有人的群聊记录一字不落地扔给他，他不仅看不过来，而且里面 99% 都是废话，很快就把他的脑子（上下文窗口）塞满了。并且，这种所谓的“记忆”一旦跨了群聊就直接清零，新拉个群他就又成了啥都不知道的傻子。</p>
+      <p>WorkBuddy 的做法是把记忆做成<b>一个可以随时穿脱、按需升级的“个人与团队装备库”</b>。它不只是记录“聊了啥”，而是把聊过的内容、读过的文档、写过的代码，过滤提炼成四种标准装备：</p>
+      <ul>
+        <li><b>Chat Memory（人设与事实）</b>：记住“别重构旧版 auth 模块，移动端还在用”这种极其昂贵的现实规则。</li>
+        <li><b>Skill（技能卡）</b>：把踩过坑、调通的复杂排障、发布流程固化下来，变成像插件一样的操作手册，以后任何 Agent 只要“一键装备”就能直接上手。</li>
+        <li><b>Wiki（知识图谱）</b>：把大量产品文档做成带链接的关系网，省得 Agent 每次都要扫一遍全盘文件。</li>
+        <li><b>CodeGraph（代码图谱）</b>：让 Agent 不仅知道“这行代码在哪”，还看清“改了它会影响谁”。</li>
+      </ul>
+      <p class="reflection">
+        站在 AI Agent 开发的角度，我深刻地体会到：<b>“如果没有记忆，循环只是在更快地重复；有了记忆，每一次迭代才有了变得更好的机会”</b>。我们不能指望大模型在 200K 的上下文里自己把一切理顺。作为开发者，我们得像管理代码库一样去管理 Agent 的记忆，给它做版本控制、配权限、做异步提炼。只有这样，AI 团队的经验才能像滚雪球一样越滚越大，而不是每次重新开局。——杨国美
+      </p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">04</span>核心机制 / 组成</h2>
+    <p>WorkBuddy 记忆系统由 <b>Memory Core（底层提炼引擎）</b>、<b>Memory Hub（人类控制面板）</b> 和 <b>Memory Proxy（无侵入式接入代理）</b> 三大核心部件组成 [来源 1]：</p>
+    
+    <h3>① 核心架构三剑客</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>组件名称</th>
+          <th>扮演的角色</th>
+          <th>主要职责</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Memory Core</b></td>
+          <td>记忆加工厂</td>
+          <td>执行异步流水线，将 L0 原始对话蒸馏为高阶资产；生成 Wiki 链接图与 CodeGraph 符号依赖。</td>
+        </tr>
+        <tr>
+          <td><b>Memory Hub</b></td>
+          <td>可视化控制台</td>
+          <td>供人类审阅、修改、授权和一键“装备”记忆卡；进行 Private/Team/ACL 级别的数据安全隔离。</td>
+        </tr>
+        <tr>
+          <td><b>Memory Proxy</b></td>
+          <td>无感网关代理</td>
+          <td>在 Agent 平台与大模型 API 之间插入，截获对话自动注入/召回记忆，不需要 Agent 代码做任何改动。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>② 四大记忆资产分类（Memory Assets）</h3>
+    <ul>
+      <li><b>Chat Memory（对话记忆）</b>：记住用户事实、习惯偏好和历史决策。从 L0 逐步提炼到 L3 画像。</li>
+      <li><b>Skill（智能体技能）</b>：将复杂的排障、代码审查、版本发布等最佳实践沉淀为带触发边界、执行步骤与验证规则的结构化 Skill 文件夹（包含 SKILL.md）。</li>
+      <li><b>Wiki（知识图谱）</b>：将产品文档、架构规范、操作手册转化为带超链接拓扑的 LLM 专属知识库，支持图谱钻取，避免大篇幅盲目检索。</li>
+      <li><b>CodeGraph（代码图谱）</b>：索引代码库中的符号、文件调用链和影响路径，让 Coder 和 Reviewer Agent 在修改前进行精准的“波及分析”。</li>
+    </ul>
+
+    <h3>③ 记忆的“分层提炼”流水线（The Memory Pipeline）</h3>
+    <p>WorkBuddy 的 <b>Memory Core</b> 对记忆的处理绝不是一锅端，而是遵循 <b>L0 到 L3 渐进提炼机制</b>，确保在检索时既能快速热启动，又能回溯细节 [来源 1]：</p>
+    <ul>
+      <li><b>L0 Conversation（原始对话）</b>：未加工的聊天瀑布流，保留最完整的语气、细节与时间戳，用于最后的精准回溯和真实性验证。</li>
+      <li><b>L1 Atom（原子事实）</b>：将对话拆解为单条独立的、无上下文依赖的客观事实（例：“用户偏好使用 TypeScript 编写脚本”）。</li>
+      <li><b>L2 Scenario（场景知识）</b>：围绕特定项目或复杂多步任务提炼出的经验快照，帮助 Agent 在切换任务时瞬间恢复工作上下文。</li>
+      <li><b>L3 Persona &amp; Core（长期画像）</b>：长期稳定的认知模型与工作准则。通常在系统启动时作为最基础的上下文 Bootstrap 加载。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">05</span>可视化讲解</h2>
+    <p class="viz-caption">以下通过直观的结构和流程图，把 WorkBuddy 记忆系统最核心的“分层提炼机制”与“资产分发逻辑”说清楚。所有图表采用原生 HTML/CSS 结构，确保离线双击亦可完美渲染。</p>
+
+    <h3 style="font-size:16px;margin:16px 0 4px;">① 记忆分层蒸馏与检索匹配模型 (L0 - L3)</h3>
+    <p class="viz-caption">从底层的“原始嘈杂信息”到顶层的“核心高阶认知”。检索时，优先从顶层高维画像快速匹配上下文（快速、省 token）；需要深入特定任务或考证事实时，再自上而下逐层穿透，直到拉取最底层的原子事实与原始对话（深度回溯）。</p>
+    
+    <!-- 纯 HTML+CSS 分层金字塔 -->
+    <div class="diagram" style="text-align: left; padding: 20px;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 600px; margin: 0 auto;">
+        
+        <!-- L3 -->
+        <div style="background: #2f6df0; color: #fff; padding: 12px; border-radius: 8px; text-align: center; border-left: 6px solid #1449c4; position: relative;">
+          <span style="font-weight: bold;">L3 Persona & Core (高维画像)</span>
+          <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">核心价值观、人设模型与长效工作准则 (快速 Bootstrap 载入)</div>
+          <span style="position: absolute; right: 10px; top: 12px; font-size: 11px; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px;">1% 浓缩</span>
+        </div>
+        
+        <!-- Down Arrow 1 -->
+        <div style="text-align: center; color: var(--muted); font-size: 14px; line-height: 1;">▼ 异步蒸馏提炼 / 向上穿透回溯</div>
+
+        <!-- L2 -->
+        <div style="background: #5b8def; color: #fff; padding: 12px; border-radius: 8px; text-align: center; border-left: 6px solid #3467cc;">
+          <span style="font-weight: bold;">L2 Scenario (场景/项目经验)</span>
+          <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">针对特定项目或复杂任务的上下文经验包</div>
+        </div>
+
+        <!-- Down Arrow 2 -->
+        <div style="text-align: center; color: var(--muted); font-size: 14px; line-height: 1;">▼ 过滤实体依赖</div>
+
+        <!-- L1 -->
+        <div style="background: #9db9e8; color: #1f2933; padding: 12px; border-radius: 8px; text-align: center; border-left: 6px solid #6b8cb0;">
+          <span style="font-weight: bold;">L1 Atom (原子事实/偏好)</span>
+          <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">去上下文的单条事实、规则、偏好 (例: "不使用旧版 auth 模块")</div>
+        </div>
+
+        <!-- Down Arrow 3 -->
+        <div style="text-align: center; color: var(--muted); font-size: 14px; line-height: 1;">▼ 对话记录捕捉</div>
+
+        <!-- L0 -->
+        <div style="background: #eef1f5; color: #5b6772; padding: 12px; border-radius: 8px; text-align: center; border: 1px dashed var(--line); border-left: 6px solid #9aa5b1;">
+          <span style="font-weight: bold; color: var(--ink);">L0 Raw Conversation (原始对话流)</span>
+          <div style="font-size: 12px; margin-top: 4px;">完整的历史聊天瀑布流，包含最原始的上下文和语境</div>
+        </div>
+
+      </div>
+      <div class="viz-caption" style="margin-top: 15px; text-align: center; font-size: 13px;">
+        图说：异步 Pipeline 负责从 L0 向上蒸馏为 L1 至 L3；查询时，Proxy 采用 BM25 + Vector 混合检索，自动自顶向下匹配，避免一次性把 L0 全部倒进上下文窗口导致 Context Rot [来源 1]。
+      </div>
+    </div>
+
+    <h3 style="font-size:16px;margin:24px 0 4px;">② 团队智能体的“经验装备（Equip）与隔离”机制</h3>
+    <p class="viz-caption">不同的智能体绑定不同的记忆。一个新加入的 Agent (例如 Scout / Builder) 不需要重新学习一遍，只要装备对应的 Wiki 或 CodeGraph “存档文件”，立刻就能进入工作状态，同时通过 ACL 保持隐私独立 [来源 1]。</p>
+
+    <!-- 资产流转图 -->
+    <div class="diagram">
+      <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 15px; padding: 10px;">
+        
+        <!-- Column 1: Sources -->
+        <div style="background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; width: 180px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+          <div style="font-weight: bold; color: var(--accent); border-bottom: 2px solid var(--accent-soft); padding-bottom: 4px; margin-bottom: 8px; font-size: 14px;">📦 团队共享资产库</div>
+          <div style="font-size: 12px; line-height: 1.6;">
+            <div>🗂️ <b>Wiki:</b> 架构文档.md</div>
+            <div>🕸️ <b>CodeGraph:</b> 代码图谱</div>
+            <div>⚡ <b>Skill:</b> 发布检查清单</div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="color: var(--accent); font-size: 24px;">➔</div>
+
+        <!-- Column 2: Hub Route -->
+        <div style="background: #fffbf0; border: 1px solid #efe7c8; border-radius: 8px; padding: 12px; width: 220px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+          <div style="font-weight: bold; color: #8a6d1f; border-bottom: 2px solid #f9f5e1; padding-bottom: 4px; margin-bottom: 8px; font-size: 14px;">🧠 Memory Hub 权限调度</div>
+          <div style="font-size: 11px; line-height: 1.5; color: var(--muted);">
+            <div>• <b>Private:</b> 仅原作者可读</div>
+            <div>• <b>Team:</b> 默认全员可见</div>
+            <div>• <b>ACL:</b> 授予指定 Agent</div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="color: var(--accent); font-size: 24px;">➔</div>
+
+        <!-- Column 3: Agents -->
+        <div style="background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; width: 200px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+          <div style="font-weight: bold; color: var(--ok); border-bottom: 2px solid #eafaf1; padding-bottom: 4px; margin-bottom: 8px; font-size: 14px;">🤖 装备不同资产的 Agent</div>
+          <div style="font-size: 11px; line-height: 1.5;">
+            <div style="background: var(--accent-soft); padding: 4px; margin: 4px 0; border-radius: 4px;">
+              <b>🔭 Scout:</b> 装备了竞品 Wiki
+            </div>
+            <div style="background: #eafaf1; padding: 4px; margin: 4px 0; border-radius: 4px;">
+              <b>🛠️ Builder:</b> 装备了 CodeGraph
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="viz-caption" style="margin-top: 15px; text-align: center; font-size: 13px;">
+        图说：通过 Memory Hub，人类可以控制哪些资产被分发到哪个 Agent。隔离避免了开发 Agent 被测试偏好污染，而共享则实现了团队知识的无缝继承。
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">06</span>应用场景</h2>
+    <div class="note">
+      <p><b>场景：新入职开发 Agent 快速接手团队祖传的代码库与发布流</b></p>
+      <p><b>① 痛点</b>：传统的开发 Agent 刚克隆下代码仓库时，不知道各个模块之间的调用纠葛，也不清楚团队口头相传的部署注意事项。如果直接让它扫描全盘代码，不仅慢、费用贵，还容易忽略关键细节；如果让它直接发布，100% 漏掉灰度发布的检查步骤。</p>
+      <p><b>② 解决过程</b>：</p>
+      <ul>
+        <li><b>第一步：载入存档（Cold Start）</b>：在 Memory Hub 中，人类主管导入了项目的 Git 仓库，<b>CodeGraph</b> 自动开始静态分析和符号建立；同时将团队撰写的“灰度发布注意点.md”上传至 <b>Wiki</b>。</li>
+        <li><b>第二步：装备 Skill（Equip）</b>：将上一个 Builder Agent 成功发布后自动提取并由人类审核过的 <code>Release-Checklist-Skill</code>（发布技能包）一键授权给这个新 Agent。</li>
+        <li><b>第三步：执行任务</b>：当新 Agent 接到“修改注册模块并发布”的任务时，它在 <b>Memory Proxy</b> 拦截下，自动获取到注册模块的相关依赖图谱。当代码修改完毕进入发布环节，<code>Release-Checklist-Skill</code> 中的验证规则被激活，自动强制它执行灰度检查，一次性安全通关。</li>
+      </ul>
+      <p><b>③ 成果</b>：新 Agent 仅用了 3 分钟静态分析时间就安全完成了首次交付，全程没有读取过无关代码，没有发生任何配置泄漏，完全继承了前任 Agent 的发布经验 [来源 1]。</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">07</span>易混淆 / 使用边界</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>概念 / 方案</th>
+          <th>WorkBuddy 记忆系统</th>
+          <th>标准历史记录（Chat History）</th>
+          <th>常规向量检索（RAG）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>形式</b></td>
+          <td><b>多模态四重资产</b><br />（事实/Skill/Wiki/代码图谱）</td>
+          <td><b>纯文本对话流</b><br />（无结构、无提炼）</td>
+          <td><b>文本分块（Chunks）</b><br />（仅在片段级别检索）</td>
+        </tr>
+        <tr>
+          <td><b>生命周期</b></td>
+          <td><b>层级化蒸馏</b><br />（L0 到 L3，永续累积，越用越准）</td>
+          <td><b>一次性/单会话</b><br />（跨 Session 即消失，容易超窗）</td>
+          <td><b>静态存储</b><br />（不随交互反馈自动自我优化）</td>
+        </tr>
+        <tr>
+          <td><b>治理能力</b></td>
+          <td><b>强权限治理</b><br />（Private / Team / ACL 可控）</td>
+          <td><b>无治理</b><br />（跟着单次会话走）</td>
+          <td><b>弱治理</b><br />（通常是全局共享库，无法控制 Agent 载荷）</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="tip">
+      <p><b>⚠️ 记忆系统的边界与局限（防坑指南）：</b></p>
+      <ul>
+        <li><b>Wiki 和 CodeGraph 的异步时滞</b>：Wiki 解析和 CodeGraph 构建是<b>异步且需要时间的</b>。刚导入大库或新文档后，资产状态会显示为 <code>processing</code>，此时强行调用 Agent 会发生检索缺失，务必等待其变为 <code>ready</code>。</li>
+        <li><b>记忆的“首尾偏好”依然存在（Lost in the Middle）</b>：虽然 Proxy 进行了精细化过滤，但在极其庞大的记忆装载时，模型对“中段”记忆的关注仍会衰减。因此，最关键、最不能犯错的安全规则，依然建议在 <b>System Prompt</b> 中硬编码写死，而不是完全指望长期记忆的召回。</li>
+        <li><b>多分支版本合并问题</b>：当多个 Builder Agent 在不同的 git 分支下并行开发，并且各自生成了局部的 CodeGraph 时，Memory Core 在主干（Main 分支）合并前的记忆会产生分叉，目前的 CodeGraph 仍优先以主干最新分析为准 [来源 1]。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">08</span>自测问题</h2>
+    <div class="quiz-intro">点击下方折叠面板，自测你是否已经掌握了 WorkBuddy 记忆系统的核心。</div>
+    
+    <!-- 简答题 -->
+    <details>
+      <summary>Q1：简答题 —— 为什么大模型标称有 "2M" 极其庞大的上下文窗口，我们还是不能把所有的历史对话都塞给它当作“记忆”？请结合 Context Rot 现象进行分析。</summary>
+      <div class="ans">
+        <p><b>答题要点：</b></p>
+        <ul>
+          <li><b>注意力稀释（Context Rot / 语境衰减）</b>：随着塞入的 token 数量呈线性增长，基于 Transformer 架构的模型其注意力计算量呈 <b>平方级 (n²)</b> 增长，导致它召回特定关键信息的能力断崖式下跌。</li>
+          <li><b>中间迷失（Lost in the Middle）</b>：即使能装下，模型也只对最开头（首）和最末尾（尾）的信息高度敏感，中段信息极易被忽略。</li>
+          <li><b>经济与速度成本</b>：无限制塞入历史记录会导致每次推理的 API 费用暴增，且首字延迟（TTFT）显著变长，拖慢开发效率。</li>
+          <li><b>由此，WorkBuddy 通过分层蒸馏与精准检索（只取高价值 Atom/Scenario 记忆）来解决这个问题</b> [来源 1]。</li>
+        </ul>
+      </div>
+    </details>
+
+    <!-- 选择题 -->
+    <details>
+      <summary>Q2：单选题 —— 当团队发现 Builder Agent 每次在发布测试包时都会漏掉“检查 SSL 证书”这一固定物理步骤，人类主管最应该采用以下哪种方式来予以纠正？</summary>
+      <div class="ans">
+        <p><b>正确选项：B</b></p>
+        <ul>
+          <li>A. 将说明写进每次对话的历史记录里。（错误：换个 Session 就会被遗忘）</li>
+          <li><b>B. 撰写一份包含该验证步骤的 SKILL.md，并在 Memory Hub 中将其作为 Skill 资产“装备”给 Builder Agent。</b>（正确：Skill 是最适合用来固化多步触发、验证规则和专业操作手册的资产类型）</li>
+          <li>C. 把证书检查指南放到产品 Wiki 里。（错误：Wiki 适合知识检索，不适合驱动强步骤性的执行行为）</li>
+          <li>D. 重新导入 CodeGraph 代码图谱。（错误：CodeGraph 解决的是代码符号依赖，与部署流程无关）</li>
+        </ul>
+      </div>
+    </details>
+
+    <!-- 应用题 -->
+    <details>
+      <summary>Q3：应用分析题 —— 在一个由 Scout (研究员)、Builder (开发) 和 Reviewer (代码审计) 组成的智能体团队中，如果你是团队的主管，你会分别给这三个 Agent “装备” 哪些记忆资产，以实现效率最大化和隐私隔离？</summary>
+      <div class="ans">
+        <p><b>推荐的装备（Equip）方案：</b></p>
+        <ul>
+          <li><b>🔭 Scout (研究员)</b>：装备<b>“竞品分析 Wiki”</b>与<b>“用户调研 Chat Memory”</b>。不需要给它装备 CodeGraph（它不写代码，装了只会浪费 token 且容易造成认知噪音）。</li>
+          <li><b>🛠️ Builder (开发员)</b>：装备<b>“产品规格/设计规范 Wiki”</b>、<b>“项目 CodeGraph”</b>和<b>“交付与代码规范 Skill”</b>。确保它在不超窗的前提下，既懂业务设计，又懂底层代码依赖。</li>
+          <li><b>🧪 Reviewer (审计员)</b>：装备<b>“历史线上事故与漏洞 Chat Memory”</b>、<b>“项目 CodeGraph”</b>和<b>“上线发布安全 checklist Skill”</b>。这能让它带着前人踩过的坑（事故记忆），精准审计 Builder 的代码，并在最后用 Skill 强制执行上线检验。</li>
+          <li><b>隔离考量</b>：Scout 的用户原始聊天记录应设为 <code>private</code> 或 <code>restricted</code> 权限，不暴露给 Builder，防止 Agent 之间发生无关数据的隐私交叉污染。</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">09</span>参考来源</h2>
+    <ol class="refs">
+      <li>
+        <b>TencentDB Agent Memory GitHub Repository</b>
+        <span class="src-type">官方开源仓库</span>
+        <br />
+        <a href="https://github.com/TencentCloud/TencentDB-Agent-Memory" target="_blank">https://github.com/TencentCloud/TencentDB-Agent-Memory</a>
+        <br /><small style="color: var(--muted);">详细阐述了 Chat Memory, Skill, Wiki, CodeGraph 四重资产的架构定义，以及 L0 到 L3 渐进式记忆提炼流水线的工程实现细节。</small>
+      </li>
+      <li>
+        <b>Tencent Cloud WorkBuddy Official Product Page</b>
+        <span class="src-type">官方产品网站</span>
+        <br />
+        <a href="https://www.workbuddy.ai/" target="_blank">https://www.workbuddy.ai/</a>
+        <br /><small style="color: var(--muted);">对 WorkBuddy 的多 Agent 协同体系、日常办公自动化和企业级工作台接入方式进行了系统化产品介绍。</small>
+      </li>
+      <li>
+        <b>Anthropic Research: Building Effective Agents</b>
+        <span class="src-type">行业权威综述</span>
+        <br />
+        <a href="https://www.anthropic.com/research/building-effective-agents" target="_blank">https://www.anthropic.com/research/building-effective-agents</a>
+        <br /><small style="color: var(--muted);">由 Anthropic 发布的智能体工程最佳实践，着重阐述了智能体短期上下文限制与长期经验固化（Skills）的核心区别。</small>
+      </li>
+    </ol>
+  </section>
+
+  <footer class="doc-foot">本资料由 concept-learning-generator Skill 生成草稿，并由杨国美结合 TencentDB-Agent-Memory 底层核心源码完成深度核查与改写。</footer>
+</div>
+</body>
+</html>

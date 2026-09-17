@@ -1,0 +1,51 @@
+# ===== 敏感信息与密钥（绝不提交） =====
+*.env
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+id_dsa
+id_ecdsa
+*.secret
+secrets.json
+credentials.json
+*.token
+
+# ===== 密码 / 个人令牌类文件 =====
+**/password*
+**/token*
+**/*credential*
+
+# ===== 隐私 / 个人数据 =====
+*.pem
+*.key
+private/
+.DS_Store
+Thumbs.db
+*.log
+
+# ===== 本地编辑器 / 系统缓存 =====
+.vscode/
+.idea/
+*.swp
+*~
+.cache/
+
+# ===== Python / Node 依赖与缓存（若后续扩展项目） =====
+__pycache__/
+node_modules/
+.venv/
+venv/
+
+# ===== 大文件 / 临时文件 =====
+*.zip
+*.tar.gz
+*.tmp
+*.bak
+
+# ===== WorkBuddy 内部记忆（个人工作日志，非作业内容，不纳入仓库） =====
+.workbuddy/memory/
