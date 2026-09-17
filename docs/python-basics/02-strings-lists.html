@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>字符串 · 列表 · 图解</title>
+<style>
+  :root{
+    --ink:#262b33; --ink-2:#5c6572; --ink-3:#8b93a0;
+    --line:#cfd5dd; --line-soft:#e4e8ee;
+    --paper:#fff; --tint:#f2f5f9;
+    --accent:#1d4e89; --accent-soft:#e3ebf5;
+    --good:#2e7d57; --bad:#b0432e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.7;}
+  svg text{font-family:inherit;}
+  .page{max-width:800px;margin:0 auto;padding:34px 24px 80px;}
+  header{padding-bottom:16px;border-bottom:1px solid var(--line-soft);}
+  h1{font-size:25px;margin:0 0 8px}
+  .tagline{color:var(--ink-2);font-size:14.5px;margin:0}
+  .crumb{margin:0 0 10px;font-size:13px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  section.learn{margin:28px 0 6px}
+  .lno{font-family:Consolas,monospace;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 7px;margin-right:8px}
+  h3{font-size:17px;margin:0 0 4px;font-weight:700}
+  figure{margin:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-size:13.5px;color:var(--ink-2);background:var(--tint);border-radius:8px;padding:6px 13px;max-width:80%;margin-top:4px}
+  .wrap{background:var(--tint);border:1px solid var(--line-soft);border-radius:14px;padding:8px 6px 4px}
+  .quiz-head{margin-top:44px;border-bottom:1px solid var(--line-soft);padding-bottom:10px}
+  .qcard{display:none;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .qcard.on{display:block;animation:qi .18s ease}
+  @keyframes qi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .q-no{font-size:12px;color:var(--ink-3);font-weight:600}
+  .q-type{font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 6px;margin-right:8px}
+  .q-stem{font-size:15.5px;margin:6px 0 10px}
+  .opts{list-style:none;margin:0;padding:0}
+  .opts li{display:flex;gap:9px;align-items:flex-start;padding:5px 8px;border-radius:8px}
+  .opts li:hover{background:var(--tint)}
+  .opts label{flex:1;cursor:pointer;font-size:14.5px}
+  .opts input{accent-color:var(--accent);margin-top:6px}
+  .ltr{font-family:Consolas,monospace;font-weight:700;color:var(--ink-2);min-width:15px}
+  code{font-family:Consolas,monospace;font-size:14px;background:var(--tint);border:1px solid var(--line-soft);border-radius:4px;padding:0 4px}
+  .qbar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  button{font-family:inherit;font-size:13px;padding:5px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--accent);background:#fff;color:var(--accent)}
+  button:hover{background:var(--accent-soft)}
+  button.primary{background:var(--accent);color:#fff}
+  button.primary:hover{background:#163c69}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .feedback{display:none;margin-top:10px;padding:9px 13px;border-radius:8px;font-size:14px}
+  .feedback.show{display:block}
+  .feedback.good{background:#edf5f0;border:1px solid #cfe2d6;color:var(--good)}
+  .feedback.bad{background:#faf0ed;border:1px solid #ead2cb;color:var(--bad)}
+  .feedback.mid{background:var(--tint);border:1px solid var(--line);color:var(--ink-2)}
+  .feedback .why{color:var(--ink-2);border-top:1px dashed var(--line);padding-top:6px;margin-top:6px}
+  .result-screen{display:none;border:1px solid var(--accent);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .result-screen.show{display:block}
+  .why-src{display:none}
+  .lesson-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:34px;padding-top:14px;border-top:1px solid var(--line-soft);font-size:13.5px}
+  .lesson-nav .dim{color:var(--ink-3)}
+  footer{margin-top:18px;color:var(--ink-3);font-size:12px;border-top:1px solid var(--line-soft);padding-top:10px}
+  @media(max-width:560px){figcaption{max-width:100%}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 z" fill="#1d4e89"/></marker>
+  <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 z" fill="#b4b2a9"/></marker>
+</defs></svg>
+
+<div class="page">
+
+  <header>
+    <p class="crumb"><a href="index.html">← 返回学习资料目录</a></p>
+    <h1>02 字符串 · 列表</h1>
+    <p class="tagline">学完能从一段文本里取出想要的部分 · 建议用时 20 分钟</p>
+  </header>
+
+  <section class="learn">
+    <h3><span class="lno">01</span>索引从 0 开始，不是 1</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 200" role="img" aria-label="字符串每个字的位置从0开始">
+        <text x="50" y="44" font-size="13" fill="#8b93a0">位置（索引）</text>
+        <rect x="50" y="58" width="110" height="80" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="105" y="48" text-anchor="middle" font-size="14" fill="#5c6572">0</text>
+        <text x="105" y="110" text-anchor="middle" font-size="24" fill="#1d4e89">兰</text>
+        <rect x="160" y="58" width="110" height="80" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="215" y="48" text-anchor="middle" font-size="14" fill="#5c6572">1</text>
+        <text x="215" y="110" text-anchor="middle" font-size="24" fill="#1d4e89">州</text>
+        <rect x="270" y="58" width="110" height="80" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="325" y="48" text-anchor="middle" font-size="14" fill="#5c6572">2</text>
+        <text x="325" y="110" text-anchor="middle" font-size="24" fill="#1d4e89">牛</text>
+        <rect x="380" y="58" width="110" height="80" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="435" y="48" text-anchor="middle" font-size="14" fill="#5c6572">3</text>
+        <text x="435" y="110" text-anchor="middle" font-size="24" fill="#1d4e89">肉</text>
+        <rect x="490" y="58" width="110" height="80" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="545" y="48" text-anchor="middle" font-size="14" fill="#5c6572">4</text>
+        <text x="545" y="110" text-anchor="middle" font-size="24" fill="#1d4e89">面</text>
+        <text x="50" y="180" font-size="13" fill="#5c6572">第 0 个是「兰」，没有第 5 个——<code>s[4]</code> 才是「面」。</text>
+      </svg>
+    </div>
+    <figcaption>数位置从 0 数：<code>s[0]</code> 拿第一个字，<code>s[4]</code> 拿最后一个，下标越界会报错。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">02</span>切片 <code>[start:stop]</code> 左闭右开</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 215" role="img" aria-label="切片左闭右开取到第1第2个">
+        <text x="50" y="42" font-size="13" fill="#8b93a0">位置</text>
+        <rect x="50" y="55" width="110" height="70" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="105" y="48" text-anchor="middle" font-size="13" fill="#5c6572">0</text>
+        <text x="105" y="100" text-anchor="middle" font-size="20" fill="#262b33">兰</text>
+        <rect x="160" y="55" width="110" height="70" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="215" y="48" text-anchor="middle" font-size="13" fill="#5c6572">1</text>
+        <text x="215" y="100" text-anchor="middle" font-size="20" fill="#1d4e89">州</text>
+        <rect x="270" y="55" width="110" height="70" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="325" y="48" text-anchor="middle" font-size="13" fill="#5c6572">2</text>
+        <text x="325" y="100" text-anchor="middle" font-size="20" fill="#1d4e89">牛</text>
+        <rect x="380" y="55" width="110" height="70" rx="10" fill="#f2f5f9" stroke="#8b93a0" stroke-dasharray="5 4"/>
+        <text x="435" y="48" text-anchor="middle" font-size="13" fill="#8b93a0">3</text>
+        <text x="435" y="100" text-anchor="middle" font-size="20" fill="#8b93a0">肉</text>
+        <rect x="490" y="55" width="110" height="70" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="545" y="48" text-anchor="middle" font-size="13" fill="#5c6572">4</text>
+        <text x="545" y="100" text-anchor="middle" font-size="20" fill="#262b33">面</text>
+        <line x1="160" y1="138" x2="380" y2="138" stroke="#1d4e89" stroke-width="1.5"/>
+        <line x1="160" y1="132" x2="160" y2="144" stroke="#1d4e89" stroke-width="1.5"/>
+        <line x1="380" y1="132" x2="380" y2="144" stroke="#1d4e89" stroke-width="1.5"/>
+        <text x="270" y="166" text-anchor="middle" font-size="14" fill="#1d4e89">s[1:3]</text>
+        <text x="270" y="192" text-anchor="middle" font-size="13" fill="#5c6572">取到第 1、2 个 →「州牛」</text>
+      </svg>
+    </div>
+    <figcaption>左闭右开：<code>s[1:3]</code> 取位置 1 和 2，永远不取位置 3；虚线框的「肉」被挡在门外。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">03</span>省略与负数：从尾巴数、从头到尾</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 250" role="img" aria-label="负数与省略写法的三种切片">
+        <text x="40" y="38" font-size="13" fill="#8b93a0">s = 兰州牛肉面</text>
+        <rect x="40" y="46" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="68" y="73" text-anchor="middle" font-size="16" fill="#262b33">兰</text>
+        <rect x="100" y="46" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="128" y="73" text-anchor="middle" font-size="16" fill="#262b33">州</text>
+        <rect x="160" y="46" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="188" y="73" text-anchor="middle" font-size="16" fill="#262b33">牛</text>
+        <rect x="220" y="46" width="56" height="44" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="248" y="73" text-anchor="middle" font-size="16" fill="#1d4e89">肉</text>
+        <rect x="280" y="46" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="308" y="73" text-anchor="middle" font-size="16" fill="#262b33">面</text>
+
+        <rect x="40" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="68" y="142" text-anchor="middle" font-size="16" fill="#262b33">兰</text>
+        <rect x="100" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="128" y="142" text-anchor="middle" font-size="16" fill="#262b33">州</text>
+        <rect x="160" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="188" y="142" text-anchor="middle" font-size="16" fill="#262b33">牛</text>
+        <rect x="220" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="248" y="142" text-anchor="middle" font-size="16" fill="#262b33">肉</text>
+        <rect x="280" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="308" y="142" text-anchor="middle" font-size="16" fill="#262b33">面</text>
+
+        <rect x="40" y="185" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="68" y="212" text-anchor="middle" font-size="16" fill="#262b33">兰</text>
+        <rect x="100" y="185" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="128" y="212" text-anchor="middle" font-size="16" fill="#262b33">州</text>
+        <rect x="160" y="185" width="56" height="44" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="188" y="212" text-anchor="middle" font-size="16" fill="#1d4e89">牛</text>
+        <rect x="220" y="185" width="56" height="44" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="248" y="212" text-anchor="middle" font-size="16" fill="#1d4e89">肉</text>
+        <rect x="280" y="185" width="56" height="44" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="308" y="212" text-anchor="middle" font-size="16" fill="#1d4e89">面</text>
+
+        <text x="360" y="73" font-size="15" fill="#5c6572">s[-1] → 面</text>
+        <text x="360" y="142" font-size="15" fill="#5c6572">s[:3] → 兰州牛</text>
+        <text x="360" y="212" font-size="15" fill="#5c6572">s[2:] → 牛肉面</text>
+      </svg>
+    </div>
+    <figcaption><code>s[-1]</code> 从右往左数最后一个；<code>s[:3]</code> 省开头＝从头数 3 个；<code>s[2:]</code> 省结尾＝从第 2 个到末尾。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">04</span>四个常用字符串方法</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 265" role="img" aria-label="split join strip replace 四种方法">
+        <rect x="30" y="30" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="50" y="58" font-size="14" fill="#1d4e89">split：按分隔符切开</text>
+        <rect x="50" y="72" width="130" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="115" y="94" text-anchor="middle" font-size="13" fill="#262b33">a b c</text>
+        <line x1="185" y1="89" x2="215" y2="89" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="220" y="72" width="145" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="292" y="94" text-anchor="middle" font-size="12" fill="#1d4e89">['a','b','c']</text>
+
+        <rect x="395" y="30" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="415" y="58" font-size="14" fill="#1d4e89">join：把列表拼回串</text>
+        <rect x="415" y="72" width="140" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="485" y="94" text-anchor="middle" font-size="12" fill="#262b33">['a','b']</text>
+        <line x1="560" y1="89" x2="585" y2="89" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="590" y="72" width="130" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="655" y="94" text-anchor="middle" font-size="13" fill="#1d4e89">a b</text>
+
+        <rect x="30" y="145" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="50" y="173" font-size="14" fill="#1d4e89">strip：去掉两边空白</text>
+        <rect x="50" y="187" width="140" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="120" y="209" text-anchor="middle" font-size="13" fill="#262b33">　hi　</text>
+        <line x1="195" y1="204" x2="220" y2="204" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="225" y="187" width="120" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="285" y="209" text-anchor="middle" font-size="13" fill="#1d4e89">hi</text>
+
+        <rect x="395" y="145" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="415" y="173" font-size="14" fill="#1d4e89">replace：替换字符</text>
+        <rect x="415" y="187" width="120" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="475" y="209" text-anchor="middle" font-size="13" fill="#262b33">aba</text>
+        <line x1="540" y1="204" x2="565" y2="204" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="570" y="187" width="130" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="635" y="209" text-anchor="middle" font-size="13" fill="#1d4e89">bba</text>
+      </svg>
+    </div>
+    <figcaption>四个方法都「返回新串」，不改原串：<code>split</code> 拆、<code>join</code> 合、<code>strip</code> 去空白、<code>replace</code> 替换。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">05</span>字符串不能改，列表能改</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 290" role="img" aria-label="字符串不可变与列表可变的对比">
+        <rect x="30" y="40" width="350" height="230" rx="12" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="50" y="66" font-size="15" fill="#b0432e">字符串：不能改</text>
+        <rect x="80" y="84" width="200" height="40" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="180" y="109" text-anchor="middle" font-size="14" fill="#262b33">s = '兰州'</text>
+        <line x1="180" y1="124" x2="180" y2="148" stroke="#b4b2a9" stroke-width="1.5" marker-end="url(#arw)"/>
+        <rect x="80" y="150" width="200" height="40" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="180" y="175" text-anchor="middle" font-size="14" fill="#262b33">s[0] = '面'</text>
+        <line x1="180" y1="190" x2="180" y2="214" stroke="#b4b2a9" stroke-width="1.5" marker-end="url(#arw)"/>
+        <rect x="80" y="216" width="200" height="40" rx="10" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="180" y="241" text-anchor="middle" font-size="14" fill="#b0432e">报错 TypeError</text>
+
+        <rect x="400" y="40" width="350" height="230" rx="12" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="420" y="66" font-size="15" fill="#2e7d57">列表：可以改</text>
+        <rect x="470" y="84" width="210" height="40" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="575" y="109" text-anchor="middle" font-size="14" fill="#262b33">lst = ['兰','州']</text>
+        <line x1="575" y1="124" x2="575" y2="148" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="470" y="150" width="210" height="40" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="575" y="175" text-anchor="middle" font-size="14" fill="#262b33">lst[0] = '面'</text>
+        <line x1="575" y1="190" x2="575" y2="214" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="470" y="216" width="210" height="40" rx="10" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="575" y="241" text-anchor="middle" font-size="14" fill="#2e7d57">['面','州']</text>
+      </svg>
+    </div>
+    <figcaption>字符串一旦创建就焊死，想改只能新建；列表用方括号，能就地改某一位。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">06</span>列表的增、删、改</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 265" role="img" aria-label="append remove pop 赋值四种列表操作">
+        <rect x="30" y="30" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="50" y="58" font-size="14" fill="#1d4e89">append：加在末尾</text>
+        <rect x="50" y="72" width="130" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="115" y="94" text-anchor="middle" font-size="13" fill="#262b33">['a','b']</text>
+        <line x1="185" y1="89" x2="215" y2="89" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="220" y="72" width="145" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="292" y="94" text-anchor="middle" font-size="12" fill="#1d4e89">['a','b','c']</text>
+
+        <rect x="395" y="30" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="415" y="58" font-size="14" fill="#1d4e89">remove：删指定值</text>
+        <rect x="415" y="72" width="140" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="485" y="94" text-anchor="middle" font-size="12" fill="#262b33">['a','b','c']</text>
+        <line x1="560" y1="89" x2="585" y2="89" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="590" y="72" width="130" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="655" y="94" text-anchor="middle" font-size="12" fill="#1d4e89">['a','c']</text>
+
+        <rect x="30" y="145" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="50" y="173" font-size="14" fill="#1d4e89">pop：删最后一个</text>
+        <rect x="50" y="187" width="140" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="120" y="209" text-anchor="middle" font-size="12" fill="#262b33">['a','b','c']</text>
+        <line x1="195" y1="204" x2="220" y2="204" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="225" y="187" width="120" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="285" y="209" text-anchor="middle" font-size="12" fill="#1d4e89">['a','b']</text>
+
+        <rect x="395" y="145" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="415" y="173" font-size="14" fill="#1d4e89">改某位：直接赋值</text>
+        <rect x="415" y="187" width="120" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="475" y="209" text-anchor="middle" font-size="13" fill="#262b33">['a','b']</text>
+        <line x1="540" y1="204" x2="565" y2="204" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="570" y="187" width="130" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="635" y="209" text-anchor="middle" font-size="13" fill="#1d4e89">['x','b']</text>
+      </svg>
+    </div>
+    <figcaption><code>append</code> 尾部加、<code>remove</code> 按值删、<code>pop</code> 删末尾（还会返回它）、<code>lst[i]=x</code> 改指定位置。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">07</span>遍历：<code>for w in words:</code></h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 290" role="img" aria-label="for 循环逐个取出列表元素">
+        <rect x="40" y="30" width="260" height="44" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="170" y="58" text-anchor="middle" font-size="14" fill="#262b33">words = ['面','汤','肉']</text>
+        <rect x="340" y="30" width="240" height="44" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="460" y="58" text-anchor="middle" font-size="14" fill="#1d4e89">for w in words:</text>
+        <line x1="300" y1="52" x2="336" y2="52" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+
+        <rect x="40" y="110" width="180" height="40" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="130" y="135" text-anchor="middle" font-size="13" fill="#262b33">① w = '面'</text>
+        <line x1="235" y1="130" x2="265" y2="130" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="275" y="135" font-size="14" fill="#5c6572">→ 打印 '面'</text>
+
+        <rect x="40" y="165" width="180" height="40" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="130" y="190" text-anchor="middle" font-size="13" fill="#262b33">② w = '汤'</text>
+        <line x1="235" y1="185" x2="265" y2="185" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="275" y="190" font-size="14" fill="#5c6572">→ 打印 '汤'</text>
+
+        <rect x="40" y="220" width="180" height="40" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="130" y="245" text-anchor="middle" font-size="13" fill="#262b33">③ w = '肉'</text>
+        <line x1="235" y1="240" x2="265" y2="240" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="275" y="245" font-size="14" fill="#5c6572">→ 打印 '肉'</text>
+      </svg>
+    </div>
+    <figcaption>循环把列表里的元素一个一个拿出来交给 <code>w</code>，每轮执行一次下面的语句。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">08</span>实战：把评论拆开，取前 5 个字</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 240" role="img" aria-label="把字符串拆成字符列表再取前5个">
+        <rect x="40" y="30" width="680" height="44" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="380" y="58" text-anchor="middle" font-size="16" fill="#262b33">这家的牛肉面真的太好吃了</text>
+        <line x1="380" y1="74" x2="380" y2="98" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+
+        <rect x="60" y="100" width="50" height="42" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="85" y="127" text-anchor="middle" font-size="16" fill="#1d4e89">这</text>
+        <rect x="113" y="100" width="50" height="42" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="138" y="127" text-anchor="middle" font-size="16" fill="#1d4e89">家</text>
+        <rect x="166" y="100" width="50" height="42" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="191" y="127" text-anchor="middle" font-size="16" fill="#1d4e89">的</text>
+        <rect x="219" y="100" width="50" height="42" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="244" y="127" text-anchor="middle" font-size="16" fill="#1d4e89">牛</text>
+        <rect x="272" y="100" width="50" height="42" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="297" y="127" text-anchor="middle" font-size="16" fill="#1d4e89">肉</text>
+        <rect x="325" y="100" width="50" height="42" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="350" y="127" text-anchor="middle" font-size="16" fill="#262b33">面</text>
+        <rect x="378" y="100" width="50" height="42" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="403" y="127" text-anchor="middle" font-size="16" fill="#262b33">真</text>
+        <rect x="431" y="100" width="50" height="42" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="456" y="127" text-anchor="middle" font-size="16" fill="#262b33">的</text>
+        <rect x="484" y="100" width="50" height="42" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="509" y="127" text-anchor="middle" font-size="16" fill="#262b33">太</text>
+        <rect x="537" y="100" width="50" height="42" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="562" y="127" text-anchor="middle" font-size="16" fill="#262b33">好</text>
+        <rect x="590" y="100" width="50" height="42" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="615" y="127" text-anchor="middle" font-size="16" fill="#262b33">吃</text>
+        <rect x="643" y="100" width="50" height="42" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="668" y="127" text-anchor="middle" font-size="16" fill="#262b33">了</text>
+
+        <line x1="380" y1="142" x2="380" y2="168" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="240" y="175" width="280" height="44" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="380" y="203" text-anchor="middle" font-size="16" fill="#1d4e89">前 5 个 → 这家牛肉面</text>
+      </svg>
+    </div>
+    <figcaption>中文没有空格，<code>list(s)</code> 能按字拆成列表，再用 <code>[:5]</code> 取前 5 个，拼回就是「这家牛肉面」。</figcaption>
+  </section>
+
+  <h2 class="quiz-head">分级自测</h2>
+  <p style="color:var(--ink-3);font-size:13.5px">
+    三级递进：概念(1) → 辨析(2) → 应用(3)。题目一道一道出：先自己选，再「检查本题」；全部作答后自动出成绩。
+  </p>
+
+  <div id="qdeck">
+
+    <div class="qcard" data-lvl="1" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">对 <code>s = "兰州牛肉面"</code>，<code>s[0]</code> 取到的是哪个字？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q1"><span class="ltr">A</span>州</label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">B</span>兰</label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">C</span>牛</label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">D</span>面</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">Python 索引从 0 开始，第一个字符是 s[0]，不是 s[1]。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem"><code>len("牛肉面")</code> 的结果是几？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q2"><span class="ltr">A</span>2</label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">B</span>3</label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">C</span>4</label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">D</span>5</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">len 数的是字符个数，"牛肉面" 共三个字，所以是 3。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">想把 <code>"a b c"</code> 按空格拆成列表，用哪个方法？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q3"><span class="ltr">A</span>join</label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">B</span>split</label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">C</span>strip</label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">D</span>replace</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">split 负责把字符串按分隔符拆开；join 正好相反，是把列表拼成串。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="C">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">下面哪一对括号用来书写列表的字面量？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q4"><span class="ltr">A</span>圆括号 <code>()</code></label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">B</span>花括号 <code>{}</code></label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">C</span>方括号 <code>[]</code></label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">D</span>不用括号</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">列表用方括号 <code>[]</code>；圆括号是元组、花括号是字典/集合。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem">执行 <code>s = "兰州"</code> 之后，再写 <code>s[0] = "面"</code> 会怎样？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q5"><span class="ltr">A</span>字符串变成 "面州"</label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">B</span>报错 <code>TypeError</code></label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">C</span>字符串变成 "兰面"</label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">D</span>没有任何变化</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">字符串是不可变对象，不能用下标去改其中一位；要改必须新建，如 s = "面" + s[1:]。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem"><code>"a,b,c".split(",")</code> 得到的是什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q6"><span class="ltr">A</span>字符串 <code>"a,b,c"</code></label></li>
+        <li><label><input type="radio" name="q6"><span class="ltr">B</span>列表 <code>['a','b','c']</code></label></li>
+        <li><label><input type="radio" name="q6"><span class="ltr">C</span>列表 <code>['abc']</code></label></li>
+        <li><label><input type="radio" name="q6"><span class="ltr">D</span>报错</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">split 按逗号把原串切开，返回的是列表；分隔符本身不会留在结果里。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem">执行 <code>s = "兰州"</code> 后，再写 <code>t = s.replace("兰","面")</code>，此时 <code>s</code> 本身是什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q7"><span class="ltr">A</span>"面州"</label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">B</span>"兰州"（没变）</label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">C</span>"面兰"</label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">D</span>报错</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">字符串方法返回新串、不改动原串；想保留结果要写 s = s.replace(...)。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem"><code>lst = [1, 2, 3, 4]</code>，执行 <code>v = lst.pop()</code> 之后，<code>lst</code> 和 <code>v</code> 分别是什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q8"><span class="ltr">A</span>lst 变成 <code>[1,2,3]</code>，v 是 <code>4</code></label></li>
+        <li><label><input type="radio" name="q8"><span class="ltr">B</span>lst 变成 <code>[2,3,4]</code>，v 是 <code>1</code></label></li>
+        <li><label><input type="radio" name="q8"><span class="ltr">C</span>lst 仍是 <code>[1,2,3,4]</code>，v 是 <code>None</code></label></li>
+        <li><label><input type="radio" name="q8"><span class="ltr">D</span>lst 变成 <code>[1,2,3]</code>，v 是 <code>1</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">pop 删掉最后一个元素并返回它；所以列表少一个尾巴，v 拿到被删的那个值。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">有 <code>s = "西北民族大学"</code>，想取出最前面的两个字「西北」，下面哪句正确？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q9"><span class="ltr">A</span><code>s[0:2]</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">B</span><code>s[-2:]</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">C</span><code>s[2:]</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">D</span><code>s[0:1]</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">前两个字要位置 0 和 1，写 s[0:2]；s[-2:] 取的是末尾两字，s[2:] 跳过前两字。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">有评论 <code>s = "这家面真不错"</code>，想把它变成「每个字一个元素」的列表，该用哪句？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q10"><span class="ltr">A</span><code>s.split()</code></label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">B</span><code>list(s)</code></label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">C</span><code>s.split("")</code></label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">D</span><code>s.chars()</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">中文没有空格，split() 拆不开；list(s) 才能按字符逐个拆成列表。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem"><code>words = ["好评","差评","好评"]</code>，想删掉其中一个「差评」，正确写法是？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q11"><span class="ltr">A</span><code>words.pop("差评")</code></label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">B</span><code>words.remove("差评")</code></label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">C</span><code>words.delete("差评")</code></label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">D</span><code>words.del("差评")</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">按值删除用 remove；pop 按位置删、且需要下标或返回被删项，没有 delete/del 这种列表方法。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">有一个商品列表 <code>prices</code>，想逐个打印出来，正确写法是？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q12"><span class="ltr">A</span><code>for p in prices: print(p)</code></label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">B</span><code>for p in prices print(p)</code></label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">C</span><code>each p in prices: print(p)</code></label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">D</span><code>for prices as p: print(p)</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">Python 的遍历固定写法是 for 变量 in 可迭代对象:，冒号和缩进都不能省，没有 each/as 这种写法。</div>
+      <div class="feedback"></div>
+    </div>
+
+  </div>
+
+  <div class="qbar" style="justify-content:space-between">
+    <button id="prev" type="button">← 上一题</button>
+    <button id="next" type="button">下一题 →</button>
+  </div>
+
+  <div class="result-screen" id="result">
+    <h3 style="margin:0 0 6px">成绩</h3>
+    <p id="r-txt"></p>
+    <p style="color:var(--ink-3);font-size:13px" id="r-hint"></p>
+    <button id="again" type="button">重新作答</button>
+  </div>
+
+  <nav class="lesson-nav">
+    <a href="01-variables-types-io.html">← 上一份：变量 · 类型 · 输入输出</a>
+    <a href="index.html">返回目录</a>
+    <a href="03-conditionals-loops.html">下一份：条件 · 循环 →</a>
+  </nav>
+
+  <footer>图解学习资料 · 生成于 <span id="yr"></span></footer>
+</div>
+
+<script>
+(function(){
+  var cards = [].slice.call(document.querySelectorAll(".qcard"));
+  var deckTop = document.getElementById("qdeck").offsetTop;
+
+  cards.forEach(function(c){
+    [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+      var inp = li.querySelector("input");
+      if (inp) inp.value = String.fromCharCode(65 + i);
+    });
+  });
+
+  function sel(c){
+    var p = [];
+    [].slice.call(c.querySelectorAll("input")).forEach(function(i){ if(i.checked) p.push(i.value); });
+    return p.sort().join("");
+  }
+  function show(i){
+    cards.forEach(function(c, idx){ c.classList.toggle("on", idx === i); });
+    document.getElementById("prev").disabled = (i === 0);
+    document.getElementById("next").disabled = (i >= cards.length - 1);
+    window.scrollTo({ top: deckTop - 16, behavior: "smooth" });
+  }
+  function markDone(c){ if(!c._done){ c._done = true; } }
+  function allDone(){ return cards.every(function(c){ return c._done; }); }
+  function fb(c, ok, kind, extra){
+    var el = c.querySelector(".feedback");
+    el.className = "feedback show " + (kind || (ok ? "good" : "bad"));
+    var head = kind === "mid" ? "<b>参考答案</b>（看答案不计分）" : ok ? "<b>答对了 ✓</b>" : "<b>不对 ✗</b>";
+    el.innerHTML = head + "　答案：" + extra + '<div class="why">' + c.querySelector(".why-src").textContent + "</div>";
+  }
+  function renderResult(){
+    var per = {1:[0,0], 2:[0,0], 3:[0,0]};
+    cards.forEach(function(c){
+      var l = +c.dataset.lvl; per[l][0]++; if(c._ok) per[l][1]++;
+    });
+    var ok = per[1][1] + per[2][1] + per[3][1], tot = cards.length;
+    document.getElementById("r-txt").innerHTML =
+      "概念 " + per[1][1] + "/" + per[1][0] +
+      " · 辨析 " + per[2][1] + "/" + per[2][0] +
+      " · 应用 " + per[3][1] + "/" + per[3][0] +
+      "　<b>总计 " + ok + "/" + tot + "</b>";
+    document.getElementById("r-hint").textContent =
+      ok >= tot * 0.85 ? "掌握良好，可尝试动手实践。"
+      : ok >= tot * 0.5 ? "针对错题回看对应小节。"
+      : "答对不足一半，建议重读知识区。";
+    var r = document.getElementById("result");
+    r.classList.add("show");
+    r.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function maybeResult(){ if(allDone()) renderResult(); }
+
+  cards.forEach(function(c){
+    var ans = c.dataset.answer;
+    c.querySelector(".check").addEventListener("click", function(){
+      var p = sel(c), ok = (p === ans);
+      c._ok = ok; markDone(c);
+      fb(c, ok, null, fmt(ans) + "　你选：" + (p || "未作答"));
+      maybeResult();
+    });
+    c.querySelector(".peek").addEventListener("click", function(){
+      markDone(c);
+      fb(c, true, "mid", fmt(ans) + "　你选：" + (sel(c) || "未作答"));
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+        var inp = li.querySelector("input");
+        if (inp && ans.indexOf(String.fromCharCode(65 + i)) > -1) li.style.background = "#eef3fa";
+      });
+      maybeResult();
+    });
+  });
+  function fmt(a){ return a.length > 1 ? a.split("").join("、") : a; }
+
+  var cur = 0;
+  document.getElementById("prev").addEventListener("click", function(){ if(cur>0){ cur--; show(cur); } });
+  document.getElementById("next").addEventListener("click", function(){ if(cur<cards.length-1){ cur++; show(cur); } });
+  document.getElementById("again").addEventListener("click", function(){
+    cards.forEach(function(c){
+      c._done = false; c._ok = false;
+      [].slice.call(c.querySelectorAll("input")).forEach(function(i){ i.checked = false; });
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li){ li.style.background = ""; });
+      var f = c.querySelector(".feedback"); f.className = "feedback"; f.innerHTML = "";
+    });
+    document.getElementById("result").classList.remove("show");
+    cur = 0; show(cur);
+  });
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  show(0);
+})();
+</script>
+</body>
+</html>
