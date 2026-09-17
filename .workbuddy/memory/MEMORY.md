@@ -12,3 +12,11 @@
 
 ## 项目级 Skill
 - 本仓库 `.workbuddy/skills/visual-lesson-builder/`：图解学习资料生成器（上述全部约定 + 一题一题测验引擎模板 assets/starter-template.html）。在**当前仓库内**直接复用。
+- 本仓库 `.workbuddy/skills/git-commit-push/`：本地仓库提交推送（status → add → commit → fetch → push → 核验），含免弹窗参数、代理降级顺序、冲突停手规则。触发语："提交推送""推一下仓库""commit 然后 push"。
+
+## Git 环境事实（2026-09-17 实测，skill 依赖这些结论）
+- 远端 `https://github.com/yangjh-xbmu/bigdata-ai-assignments.git`，分支 main；身份 yangjh-xbmu / yangjh@xbmu.edu.cn。
+- WorkBuddy 沙箱内 **`refs/remotes/origin/*` 写不进去**：`update-ref`/`fetch` 都报成功但不落地（已用全新临时仓库复现，属环境级）。因此 `git status -sb` 的 ahead/behind、`origin/main` 都不可信，**判定推送结果必须用 `git ls-remote origin refs/heads/main`**。用户自己的终端没这个问题。
+- `.git/packed-refs` 里的 `refs/remotes/origin/main` 是可读源；要修 `git status` 显示，直接改写这一行即可（显示层修补，不影响推送）。
+- Bash 工具里 PATH 缺 coreutils，任何命令前先 `export PATH="/usr/bin:/bin:/mingw64/bin:/cmd:$PATH"`。
+- 提交信息规范见 `docs/submission-guide.md`：`类型(范围): 中文描述`，禁 emoji、禁 AI 署名。

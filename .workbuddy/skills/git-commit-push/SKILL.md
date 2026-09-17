@@ -35,13 +35,13 @@ GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=Never git -c credential.interactive=never 
 
 凭据已缓存，正常根本走不到交互分支；加前缀是防止凭据失效时挂起或弹 GUI。
 
-**2. 代理不硬编码，且必须设超时。** 按此顺序降级，命中即停：
+**2. 网络先重试，再降级，且必须设超时。** 实测网络会**抖动**：同一分钟内 `push` 报 `CONNECT tunnel failed, response 502`，紧接着 `ls-remote` 又成功。所以先原地重试，再走降级链：
 
-1. 直接用当前环境跑；
-2. 失败 → **清代理重试**（会话代理最常见的故障是 502）：
+1. **原样重试 2–3 次**（抖动居多，往往第二次就过）；
+2. 仍失败 → **清代理重试**（会话代理最常见的故障是 502）：
    `env -u https_proxy -u http_proxy -u HTTPS_PROXY -u HTTP_PROXY git -c http.proxy= -c https.proxy= <cmd>`
 3. 仍失败 → 试 `https_proxy=http://127.0.0.1:10808`（不保证可用）；
-4. 三次都失败 → **停手**报告原始报错，别继续瞎试。
+4. 全失败 → **停手**报告原始报错，别继续瞎试。
 
 每一步都用 `timeout` 兜底，避免长时间挂起（实测直连超时能卡 21 秒）：
 
@@ -156,7 +156,7 @@ timeout 30 git ls-remote origin refs/heads/main | cut -f1 | grep -q "^$(git rev-
 
 | 现象 | 处理 |
 | --- | --- |
-| `CONNECT tunnel failed, response 502` | 会话代理失效 → 按 §二.2 降级②清代理重试 |
+| `CONNECT tunnel failed, response 502` | 先重试 2–3 次（多为抖动）；仍不行 → 降级②清代理重试 |
 | `Failed to connect to github.com:443` | 直连不通 → 降级③试 10808；仍失败则停手报告 |
 | `! [rejected] ... (fetch first)` / non-fast-forward | `git pull --rebase origin main` 后重推；**不要** force |
 | `CONFLICT` | **停手**。列出冲突文件，让用户决定保留哪边，不要自动选边 |
