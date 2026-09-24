@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>条件 · 循环 · 图解</title>
+<style>
+  :root{
+    --ink:#262b33; --ink-2:#5c6572; --ink-3:#8b93a0;
+    --line:#cfd5dd; --line-soft:#e4e8ee;
+    --paper:#fff; --tint:#f2f5f9;
+    --accent:#1d4e89; --accent-soft:#e3ebf5;
+    --good:#2e7d57; --bad:#b0432e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.7;}
+  svg text{font-family:inherit;}
+  .page{max-width:800px;margin:0 auto;padding:34px 24px 80px;}
+  header{padding-bottom:16px;border-bottom:1px solid var(--line-soft);}
+  h1{font-size:25px;margin:0 0 8px}
+  .tagline{color:var(--ink-2);font-size:14.5px;margin:0}
+  .crumb{margin:0 0 10px;font-size:13px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  section.learn{margin:28px 0 6px}
+  .lno{font-family:Consolas,monospace;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 7px;margin-right:8px}
+  h3{font-size:17px;margin:0 0 4px;font-weight:700}
+  figure{margin:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-size:13.5px;color:var(--ink-2);background:var(--tint);border-radius:8px;padding:6px 13px;max-width:80%;margin-top:4px}
+  .wrap{background:var(--tint);border:1px solid var(--line-soft);border-radius:14px;padding:8px 6px 4px}
+  .quiz-head{margin-top:44px;border-bottom:1px solid var(--line-soft);padding-bottom:10px}
+  .qcard{display:none;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .qcard.on{display:block;animation:qi .18s ease}
+  @keyframes qi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .q-no{font-size:12px;color:var(--ink-3);font-weight:600}
+  .q-type{font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 6px;margin-right:8px}
+  .q-stem{font-size:15.5px;margin:6px 0 10px}
+  .opts{list-style:none;margin:0;padding:0}
+  .opts li{display:flex;gap:9px;align-items:flex-start;padding:5px 8px;border-radius:8px}
+  .opts li:hover{background:var(--tint)}
+  .opts label{flex:1;cursor:pointer;font-size:14.5px}
+  .opts label code{margin-left:3px}
+  .opts .ltr{display:inline-block;width:18px}
+  .opts input{accent-color:var(--accent);margin-top:6px}
+  .ltr{font-family:Consolas,monospace;font-weight:700;color:var(--ink-2);min-width:15px}
+  code{font-family:Consolas,monospace;font-size:14px;background:var(--tint);border:1px solid var(--line-soft);border-radius:4px;padding:0 4px}
+  .qbar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  button{font-family:inherit;font-size:13px;padding:5px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--accent);background:#fff;color:var(--accent)}
+  button:hover{background:var(--accent-soft)}
+  button.primary{background:var(--accent);color:#fff}
+  button.primary:hover{background:#163c69}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .feedback{display:none;margin-top:10px;padding:9px 13px;border-radius:8px;font-size:14px}
+  .feedback.show{display:block}
+  .feedback.good{background:#edf5f0;border:1px solid #cfe2d6;color:var(--good)}
+  .feedback.bad{background:#faf0ed;border:1px solid #ead2cb;color:var(--bad)}
+  .feedback.mid{background:var(--tint);border:1px solid var(--line);color:var(--ink-2)}
+  .feedback .why{color:var(--ink-2);border-top:1px dashed var(--line);padding-top:6px;margin-top:6px}
+  .result-screen{display:none;border:1px solid var(--accent);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .result-screen.show{display:block}
+  .why-src{display:none}
+  .lesson-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:34px;padding-top:14px;border-top:1px solid var(--line-soft);font-size:13.5px}
+  .lesson-nav .dim{color:var(--ink-3)}
+  footer{margin-top:18px;color:var(--ink-3);font-size:12px;border-top:1px solid var(--line-soft);padding-top:10px}
+  @media(max-width:560px){figcaption{max-width:100%}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 z" fill="#1d4e89"/></marker>
+  <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 z" fill="#b4b2a9"/></marker>
+</defs></svg>
+
+<div class="page">
+
+  <header>
+    <p class="crumb"><a href="index.html">← 返回学习资料目录</a></p>
+    <h1>03 条件 · 循环</h1>
+    <p class="tagline">学完能按条件筛选数据、把一段逻辑重复执行 · 建议用时 20 分钟</p>
+  </header>
+
+  <section class="learn">
+    <h3><span class="lno">01</span><code>if / elif / else</code> 三岔路口</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 260" role="img" aria-label="if elif else 的分支结构">
+        <rect x="270" y="30" width="180" height="44" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="360" y="58" text-anchor="middle" font-size="14" fill="#262b33">score &gt;= 90 ?</text>
+        <line x1="450" y1="52" x2="518" y2="52" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="476" y="46" font-size="12" fill="#8b93a0">是</text>
+        <rect x="520" y="30" width="120" height="44" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="580" y="58" text-anchor="middle" font-size="14" fill="#1d4e89">优</text>
+
+        <line x1="360" y1="74" x2="360" y2="108" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="368" y="96" font-size="12" fill="#8b93a0">否</text>
+        <rect x="270" y="110" width="180" height="44" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="360" y="138" text-anchor="middle" font-size="14" fill="#262b33">score &gt;= 60 ?</text>
+        <line x1="450" y1="132" x2="518" y2="132" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="476" y="126" font-size="12" fill="#8b93a0">是</text>
+        <rect x="520" y="110" width="120" height="44" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="580" y="138" text-anchor="middle" font-size="14" fill="#1d4e89">及格</text>
+
+        <line x1="360" y1="154" x2="360" y2="188" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="368" y="176" font-size="12" fill="#8b93a0">否</text>
+        <rect x="270" y="190" width="180" height="44" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="360" y="218" text-anchor="middle" font-size="14" fill="#262b33">不及格</text>
+      </svg>
+    </div>
+    <figcaption>从上往下问，命中第一个满足的条件就走那条路；全都不满足才落到 <code>else</code>。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">02</span>比较运算与布尔逻辑 <code>and / or / not</code></h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 260" role="img" aria-label="比较运算和逻辑运算的结果">
+        <rect x="30" y="30" width="350" height="210" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="50" y="56" font-size="14" fill="#1d4e89">比较运算 → 真假</text>
+        <rect x="50" y="72" width="110" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="105" y="94" text-anchor="middle" font-size="13" fill="#262b33">5 &gt; 3</text>
+        <line x1="165" y1="89" x2="195" y2="89" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="200" y="72" width="120" height="34" rx="8" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="260" y="94" text-anchor="middle" font-size="13" fill="#2e7d57">True</text>
+        <rect x="50" y="116" width="110" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="105" y="138" text-anchor="middle" font-size="13" fill="#262b33">5 == 5</text>
+        <line x1="165" y1="133" x2="195" y2="133" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="200" y="116" width="120" height="34" rx="8" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="260" y="138" text-anchor="middle" font-size="13" fill="#2e7d57">True</text>
+        <rect x="50" y="160" width="110" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="105" y="182" text-anchor="middle" font-size="13" fill="#262b33">5 &lt; 3</text>
+        <line x1="165" y1="177" x2="195" y2="177" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="200" y="160" width="120" height="34" rx="8" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="260" y="182" text-anchor="middle" font-size="13" fill="#b0432e">False</text>
+
+        <rect x="400" y="30" width="330" height="210" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="420" y="56" font-size="14" fill="#1d4e89">逻辑 and / or / not</text>
+        <rect x="420" y="72" width="150" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="495" y="94" text-anchor="middle" font-size="12" fill="#262b33">True and False</text>
+        <line x1="575" y1="89" x2="605" y2="89" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="610" y="72" width="110" height="34" rx="8" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="665" y="94" text-anchor="middle" font-size="13" fill="#b0432e">False</text>
+        <rect x="420" y="116" width="150" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="495" y="138" text-anchor="middle" font-size="12" fill="#262b33">True or False</text>
+        <line x1="575" y1="133" x2="605" y2="133" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="610" y="116" width="110" height="34" rx="8" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="665" y="138" text-anchor="middle" font-size="13" fill="#2e7d57">True</text>
+        <rect x="420" y="160" width="150" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="495" y="182" text-anchor="middle" font-size="12" fill="#262b33">not False</text>
+        <line x1="575" y1="177" x2="605" y2="177" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="610" y="160" width="110" height="34" rx="8" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="665" y="182" text-anchor="middle" font-size="13" fill="#2e7d57">True</text>
+      </svg>
+    </div>
+    <figcaption>比较（&gt; &lt; ==）吐出 True/False；<code>and</code> 全真才真、<code>or</code> 一真就真、<code>not</code> 取反。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">03</span>什么算「假」：<code>0</code> <code>""</code> <code>[]</code> <code>None</code></h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 230" role="img" aria-label="0 空串 空列表 None 都当作假">
+        <text x="30" y="34" font-size="13" fill="#8b93a0">下面的东西，在 if 里都算假</text>
+        <rect x="30" y="50" width="160" height="60" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="110" y="88" text-anchor="middle" font-size="18" fill="#262b33">0</text>
+        <rect x="210" y="50" width="160" height="60" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="290" y="88" text-anchor="middle" font-size="18" fill="#262b33">""</text>
+        <rect x="390" y="50" width="160" height="60" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="470" y="88" text-anchor="middle" font-size="18" fill="#262b33">[]</text>
+        <rect x="570" y="50" width="160" height="60" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="650" y="88" text-anchor="middle" font-size="18" fill="#262b33">None</text>
+
+        <line x1="110" y1="110" x2="110" y2="150" stroke="#b4b2a9" stroke-width="1.5" marker-end="url(#arw)"/>
+        <line x1="290" y1="110" x2="290" y2="150" stroke="#b4b2a9" stroke-width="1.5" marker-end="url(#arw)"/>
+        <line x1="470" y1="110" x2="470" y2="150" stroke="#b4b2a9" stroke-width="1.5" marker-end="url(#arw)"/>
+        <line x1="650" y1="110" x2="650" y2="150" stroke="#b4b2a9" stroke-width="1.5" marker-end="url(#arw)"/>
+
+        <rect x="30" y="160" width="700" height="44" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="380" y="188" text-anchor="middle" font-size="14" fill="#1d4e89">在 if 判断里，这些都会被当成 False（假）</text>
+      </svg>
+    </div>
+    <figcaption>不用写 <code>== 0</code> 或 <code>== ""</code>，直接 <code>if x:</code> 就能判断「有没有、是不是空」。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">04</span><code>for</code> + <code>range()</code> 的三种写法</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 210" role="img" aria-label="range 的三种常见用法">
+        <rect x="20" y="30" width="240" height="170" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="40" y="56" font-size="14" fill="#1d4e89">range(5)</text>
+        <rect x="40" y="70" width="200" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="140" y="92" text-anchor="middle" font-size="13" fill="#262b33">从 0 数到 4</text>
+        <line x1="140" y1="110" x2="140" y2="124" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="40" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="58" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">0</text>
+        <rect x="82" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="100" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">1</text>
+        <rect x="124" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="142" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">2</text>
+        <rect x="166" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="184" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">3</text>
+        <rect x="208" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="226" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">4</text>
+
+        <rect x="260" y="30" width="240" height="170" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="280" y="56" font-size="14" fill="#1d4e89">range(1, 6)</text>
+        <rect x="280" y="70" width="200" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="380" y="92" text-anchor="middle" font-size="13" fill="#262b33">从 1 数到 5</text>
+        <line x1="380" y1="110" x2="380" y2="124" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="280" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="298" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">1</text>
+        <rect x="322" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="340" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">2</text>
+        <rect x="364" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="382" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">3</text>
+        <rect x="406" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="424" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">4</text>
+        <rect x="448" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="466" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">5</text>
+
+        <rect x="500" y="30" width="235" height="170" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="520" y="56" font-size="14" fill="#1d4e89">range(0, 10, 2)</text>
+        <rect x="520" y="70" width="200" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="620" y="92" text-anchor="middle" font-size="13" fill="#262b33">从 0 每隔 2</text>
+        <line x1="620" y1="110" x2="620" y2="124" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="520" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="538" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">0</text>
+        <rect x="562" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="580" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">2</text>
+        <rect x="604" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="622" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">4</text>
+        <rect x="646" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="664" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">6</text>
+        <rect x="688" y="128" width="36" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="706" y="150" text-anchor="middle" font-size="13" fill="#1d4e89">8</text>
+      </svg>
+    </div>
+    <figcaption>第三个数字是步长：<code>range(开始, 结束, 步长)</code>，同样是左闭右开，到「结束」前一个为止。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">05</span><code>enumerate</code> 拿位置、<code>zip</code> 并排走</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 230" role="img" aria-label="enumerate 与 zip 的用法">
+        <rect x="30" y="30" width="350" height="200" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="50" y="56" font-size="14" fill="#1d4e89">enumerate：位置 + 值</text>
+        <rect x="50" y="70" width="160" height="40" rx="10" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="130" y="95" text-anchor="middle" font-size="13" fill="#262b33">['a','b','c']</text>
+        <line x1="130" y1="110" x2="130" y2="134" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="40" y="140" width="100" height="36" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="90" y="163" text-anchor="middle" font-size="12" fill="#1d4e89">(0,'a')</text>
+        <rect x="150" y="140" width="100" height="36" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="200" y="163" text-anchor="middle" font-size="12" fill="#1d4e89">(1,'b')</text>
+        <rect x="260" y="140" width="100" height="36" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="310" y="163" text-anchor="middle" font-size="12" fill="#1d4e89">(2,'c')</text>
+
+        <rect x="400" y="30" width="330" height="200" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="420" y="56" font-size="14" fill="#1d4e89">zip：两列并排</text>
+        <rect x="420" y="70" width="150" height="38" rx="10" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="495" y="94" text-anchor="middle" font-size="13" fill="#262b33">['a','b']</text>
+        <rect x="420" y="114" width="150" height="38" rx="10" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="495" y="138" text-anchor="middle" font-size="13" fill="#262b33">[1, 2]</text>
+        <line x1="570" y1="130" x2="595" y2="130" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="600" y="118" width="120" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="660" y="140" text-anchor="middle" font-size="12" fill="#1d4e89">('a',1)</text>
+        <rect x="600" y="158" width="120" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="660" y="180" text-anchor="middle" font-size="12" fill="#1d4e89">('b',2)</text>
+      </svg>
+    </div>
+    <figcaption><code>enumerate</code> 一边数位置一边给值；<code>zip</code> 把两条等长序列按位配成一对一对。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">06</span><code>while</code> 与 <code>break</code> / <code>continue</code></h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 210" role="img" aria-label="while 循环里 break 与 continue 的区别">
+        <rect x="80" y="40" width="220" height="46" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="190" y="68" text-anchor="middle" font-size="14" fill="#262b33">while 条件成立:</text>
+        <rect x="80" y="130" width="220" height="46" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="190" y="158" text-anchor="middle" font-size="14" fill="#1d4e89">执行循环体</text>
+
+        <line x1="300" y1="63" x2="360" y2="63" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="318" y="57" font-size="12" fill="#8b93a0">否</text>
+        <rect x="380" y="40" width="150" height="46" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="455" y="68" text-anchor="middle" font-size="13" fill="#262b33">循环结束</text>
+
+        <line x1="190" y1="86" x2="190" y2="128" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="198" y="110" font-size="12" fill="#8b93a0">是</text>
+
+        <line x1="120" y1="130" x2="120" y2="86" stroke="#b4b2a9" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arw)"/>
+        <text x="40" y="112" font-size="12" fill="#8b93a0">continue 回判断</text>
+
+        <line x1="300" y1="153" x2="360" y2="153" stroke="#b0432e" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="318" y="147" font-size="12" fill="#b0432e">break</text>
+        <rect x="380" y="130" width="150" height="46" rx="10" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="455" y="158" text-anchor="middle" font-size="13" fill="#b0432e">立刻跳出</text>
+      </svg>
+    </div>
+    <figcaption"><code>continue</code> 是「这轮跳过、回去再判断」；<code>break</code> 是「整个循环到此为止」。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">07</span>循环里套条件：只留符合条件的</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 350" role="img" aria-label="遍历记录只保留符合条件的">
+        <rect x="40" y="30" width="240" height="42" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="160" y="57" text-anchor="middle" font-size="14" fill="#262b33">记录 [3, 8, 2, 9]</text>
+        <rect x="320" y="30" width="220" height="42" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="430" y="57" text-anchor="middle" font-size="14" fill="#1d4e89">for x in 记录:</text>
+        <line x1="300" y1="51" x2="316" y2="51" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+
+        <rect x="60" y="95" width="90" height="32" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="105" y="117" text-anchor="middle" font-size="13" fill="#262b33">x = 3</text>
+        <text x="165" y="117" font-size="12" fill="#5c6572">x &gt; 5 ?</text>
+        <rect x="300" y="95" width="110" height="32" rx="8" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="355" y="117" text-anchor="middle" font-size="12" fill="#b0432e">否 → 丢弃</text>
+
+        <rect x="60" y="135" width="90" height="32" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="105" y="157" text-anchor="middle" font-size="13" fill="#262b33">x = 8</text>
+        <text x="165" y="157" font-size="12" fill="#5c6572">x &gt; 5 ?</text>
+        <rect x="300" y="135" width="110" height="32" rx="8" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="355" y="157" text-anchor="middle" font-size="12" fill="#2e7d57">是 → 保留</text>
+
+        <rect x="60" y="175" width="90" height="32" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="105" y="197" text-anchor="middle" font-size="13" fill="#262b33">x = 2</text>
+        <text x="165" y="197" font-size="12" fill="#5c6572">x &gt; 5 ?</text>
+        <rect x="300" y="175" width="110" height="32" rx="8" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="355" y="197" text-anchor="middle" font-size="12" fill="#b0432e">否 → 丢弃</text>
+
+        <rect x="60" y="215" width="90" height="32" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="105" y="237" text-anchor="middle" font-size="13" fill="#262b33">x = 9</text>
+        <text x="165" y="237" font-size="12" fill="#5c6572">x &gt; 5 ?</text>
+        <rect x="300" y="215" width="110" height="32" rx="8" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="355" y="237" text-anchor="middle" font-size="12" fill="#2e7d57">是 → 保留</text>
+
+        <line x1="410" y1="151" x2="410" y2="280" stroke="#2e7d57" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="320" y="285" width="240" height="44" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="440" y="313" text-anchor="middle" font-size="14" fill="#1d4e89">保留下来的：[8, 9]</text>
+      </svg>
+    </div>
+    <figcaption>每取一个数先问条件，满足才收下——这就是「筛选」：遍历全部、只留下合格的。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">08</span>实战：筛出低于 3 的评分并计数</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 400" role="img" aria-label="筛选低于3的评分并统计个数">
+        <rect x="40" y="30" width="400" height="44" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="240" y="58" text-anchor="middle" font-size="14" fill="#262b33">scores = [4.5, 2.0, 3.8, 1.5, 5.0]</text>
+
+        <rect x="60" y="100" width="110" height="34" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="115" y="122" text-anchor="middle" font-size="13" fill="#262b33">s = 4.5</text>
+        <text x="195" y="122" font-size="12" fill="#5c6572">s &lt; 3 ?</text>
+        <rect x="300" y="100" width="120" height="34" rx="8" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="360" y="122" text-anchor="middle" font-size="12" fill="#b0432e">否 → 不保留</text>
+
+        <rect x="60" y="140" width="110" height="34" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="115" y="162" text-anchor="middle" font-size="13" fill="#262b33">s = 2.0</text>
+        <text x="195" y="162" font-size="12" fill="#5c6572">s &lt; 3 ?</text>
+        <rect x="300" y="140" width="120" height="34" rx="8" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="360" y="162" text-anchor="middle" font-size="12" fill="#2e7d57">是 → 保留</text>
+
+        <rect x="60" y="180" width="110" height="34" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="115" y="202" text-anchor="middle" font-size="13" fill="#262b33">s = 3.8</text>
+        <text x="195" y="202" font-size="12" fill="#5c6572">s &lt; 3 ?</text>
+        <rect x="300" y="180" width="120" height="34" rx="8" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="360" y="202" text-anchor="middle" font-size="12" fill="#b0432e">否 → 不保留</text>
+
+        <rect x="60" y="220" width="110" height="34" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="115" y="242" text-anchor="middle" font-size="13" fill="#262b33">s = 1.5</text>
+        <text x="195" y="242" font-size="12" fill="#5c6572">s &lt; 3 ?</text>
+        <rect x="300" y="220" width="120" height="34" rx="8" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="360" y="242" text-anchor="middle" font-size="12" fill="#2e7d57">是 → 保留</text>
+
+        <rect x="60" y="260" width="110" height="34" rx="8" fill="#fff" stroke="#cfd5dd"/>
+        <text x="115" y="282" text-anchor="middle" font-size="13" fill="#262b33">s = 5.0</text>
+        <text x="195" y="282" font-size="12" fill="#5c6572">s &lt; 3 ?</text>
+        <rect x="300" y="260" width="120" height="34" rx="8" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="360" y="282" text-anchor="middle" font-size="12" fill="#b0432e">否 → 不保留</text>
+
+        <line x1="420" y1="155" x2="420" y2="330" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="320" y="335" width="360" height="44" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="500" y="363" text-anchor="middle" font-size="14" fill="#1d4e89">低于 3 的：[2.0, 1.5] · 共 2 个</text>
+      </svg>
+    </div>
+    <figcaption>边遍历边用 <code>if s &lt; 3</code> 判断，命中就放进结果并让计数器 <code>+1</code>——这就是数据筛选与计数。</figcaption>
+  </section>
+
+  <h2 class="quiz-head">分级自测</h2>
+  <p style="color:var(--ink-3);font-size:13.5px">
+    三级递进：概念(1) → 辨析(2) → 应用(3)。题目一道一道出：先自己选，再「检查本题」；全部作答后自动出成绩。
+  </p>
+
+  <div id="qdeck">
+
+    <div class="qcard" data-lvl="1" data-answer="C">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">在 <code>if / elif / else</code> 里，当所有条件都不成立时，会执行哪一块？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q1"><span class="ltr">A</span>if 块</label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">B</span>elif 块</label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">C</span>else 块</label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">D</span>直接报错</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">else 是「兜底」分支，前面全都不满足时才轮到它。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">比较 <code>5 == 5</code> 的结果是什么类型、什么值？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q2"><span class="ltr">A</span><code>True</code></label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">B</span><code>False</code></label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">C</span><code>5</code></label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">D</span><code>1</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">相等比较成立时返回布尔值 True，不是数字 5 或 1。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem"><code>range(3)</code> 依次产生哪些数？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q3"><span class="ltr">A</span>1, 2, 3</label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">B</span>0, 1, 2</label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">C</span>0, 1, 2, 3</label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">D</span>只有 3</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">range 从 0 开始、到「结束值减 1」为止，所以 range(3) 是 0,1,2。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">在 <code>if</code> 判断里，空列表 <code>[]</code> 会被当成什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q4"><span class="ltr">A</span>True（真）</label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">B</span>False（假）</label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">C</span>报错</label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">D</span>取决于列表内容</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">0、空串、空列表、None 在布尔语境里都是假，所以 if [] 不会进分支。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem">执行 <code>x = 0</code> 后，下面代码会打印什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q5"><span class="ltr">A</span>a</label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">B</span>b</label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">C</span>a 和 b 都打印</label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">D</span>报错</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">0 在布尔语境里是假，所以 if x 不成立，走 else 打印 b；这是「0 即假」最易踩的坑。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem"><code>not (5 &gt; 3)</code> 的结果是？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q6"><span class="ltr">A</span>True</label></li>
+        <li><label><input type="radio" name="q6"><span class="ltr">B</span>False</label></li>
+        <li><label><input type="radio" name="q6"><span class="ltr">C</span>报错</label></li>
+        <li><label><input type="radio" name="q6"><span class="ltr">D</span>5</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">5>3 是 True，not 取反得 False；注意 not 作用于整个括号，顺序别搞错。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem"><code>for i in range(1, 6):</code> 的循环体一共会执行几次？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q7"><span class="ltr">A</span>4 次</label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">B</span>5 次</label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">C</span>6 次</label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">D</span>7 次</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">range(1,6) 是 1,2,3,4,5，左闭右开所以不含 6，共 5 次；别顺手加一。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem">在 <code>while</code> 循环体里，想「立刻结束整个循环」，该用哪个？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q8"><span class="ltr">A</span>continue</label></li>
+        <li><label><input type="radio" name="q8"><span class="ltr">B</span>break</label></li>
+        <li><label><input type="radio" name="q8"><span class="ltr">C</span>pass</label></li>
+        <li><label><input type="radio" name="q8"><span class="ltr">D</span>return</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">break 直接跳出整层循环；continue 只是跳过本轮、还会回去再判断，别混。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">有温度列表 <code>temps = [20, 35, 18, 40]</code>，想打印出所有 ≥ 35 的值，正确写法是？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q9"><span class="ltr">A</span><code>for t in temps:&#10;    if t &gt;= 35: print(t)</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">B</span><code>for t in temps:&#10;    print(t &gt;= 35)</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">C</span><code>if temps &gt;= 35:&#10;    print(temps)</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">D</span><code>for t in temps if t &gt;= 35 print(t)</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">要逐个检查并只打印达标的，必须 for 遍历 + if 判断；B 打印的是布尔值，C 拿整个列表比大小会报错。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem"><code>numbers = [1, 2, 3, 4]</code>，想统计其中偶数的个数，下面哪句填在 <code>if n % 2 == 0:</code> 下面最合适？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q10"><span class="ltr">A</span><code>count = 1</code></label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">B</span><code>count += 1</code></label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">C</span><code>count = count</code></label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">D</span><code>print(count)</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">计数用累加 count += 1；写 count = 1 每次都归一成 1，最后永远只记到 1。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">遍历用户名单逐个发送通知，遇到「退订」就停止继续发送，应当用？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q11"><span class="ltr">A</span>continue（跳过这一位、继续发）</label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">B</span>break（整个发送停止）</label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">C</span>pass（什么都不做）</label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">D</span>return（退回函数）</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">「停止继续发送」是结束整个循环，用 break；continue 只会跳过这一位、后面照发不误。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">给定 <code>scores = [4.5, 2.0, 3.8, 1.5, 5.0]</code>，要正确统计「低于 3 的个数」，下面哪段能办到？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q12"><span class="ltr">A</span><code>low = 0&#10;for s in scores:&#10;    if s &lt; 3: low += 1</code></label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">B</span><code>low = 0&#10;for s in scores:&#10;    low = 1</code></label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">C</span><code>low = 0&#10;for s in scores:&#10;    if s &lt; 3: low = 0</code></label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">D</span><code>for s in scores:&#10;    if s &lt; 3: print(s)</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">统计个数要累加 low += 1；B、C 把计数写死成常量，D 只打印不计数，都得不到个数。</div>
+      <div class="feedback"></div>
+    </div>
+
+  </div>
+
+  <div class="qbar" style="justify-content:space-between">
+    <button id="prev" type="button">← 上一题</button>
+    <button id="next" type="button">下一题 →</button>
+  </div>
+
+  <div class="result-screen" id="result">
+    <h3 style="margin:0 0 6px">成绩</h3>
+    <p id="r-txt"></p>
+    <p style="color:var(--ink-3);font-size:13px" id="r-hint"></p>
+    <button id="again" type="button">重新作答</button>
+  </div>
+
+  <nav class="lesson-nav">
+    <a href="02-strings-lists.html">← 上一份：字符串 · 列表</a>
+    <a href="index.html">返回目录</a>
+    <a href="04-dict-set-comprehension.html">下一份：字典 · 集合 · 推导式 →</a>
+  </nav>
+
+  <footer>图解学习资料 · 生成于 <span id="yr"></span></footer>
+</div>
+
+<script>
+(function(){
+  var cards = [].slice.call(document.querySelectorAll(".qcard"));
+  var deckTop = document.getElementById("qdeck").offsetTop;
+
+  cards.forEach(function(c){
+    [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+      var inp = li.querySelector("input");
+      if (inp) inp.value = String.fromCharCode(65 + i);
+    });
+  });
+
+  function sel(c){
+    var p = [];
+    [].slice.call(c.querySelectorAll("input")).forEach(function(i){ if(i.checked) p.push(i.value); });
+    return p.sort().join("");
+  }
+  function show(i){
+    cards.forEach(function(c, idx){ c.classList.toggle("on", idx === i); });
+    document.getElementById("prev").disabled = (i === 0);
+    document.getElementById("next").disabled = (i >= cards.length - 1);
+    window.scrollTo({ top: deckTop - 16, behavior: "smooth" });
+  }
+  function markDone(c){ if(!c._done){ c._done = true; } }
+  function allDone(){ return cards.every(function(c){ return c._done; }); }
+  function fb(c, ok, kind, extra){
+    var el = c.querySelector(".feedback");
+    el.className = "feedback show " + (kind || (ok ? "good" : "bad"));
+    var head = kind === "mid" ? "<b>参考答案</b>（看答案不计分）" : ok ? "<b>答对了 ✓</b>" : "<b>不对 ✗</b>";
+    el.innerHTML = head + "　答案：" + extra + '<div class="why">' + c.querySelector(".why-src").textContent + "</div>";
+  }
+  function renderResult(){
+    var per = {1:[0,0], 2:[0,0], 3:[0,0]};
+    cards.forEach(function(c){
+      var l = +c.dataset.lvl; per[l][0]++; if(c._ok) per[l][1]++;
+    });
+    var ok = per[1][1] + per[2][1] + per[3][1], tot = cards.length;
+    document.getElementById("r-txt").innerHTML =
+      "概念 " + per[1][1] + "/" + per[1][0] +
+      " · 辨析 " + per[2][1] + "/" + per[2][0] +
+      " · 应用 " + per[3][1] + "/" + per[3][0] +
+      "　<b>总计 " + ok + "/" + tot + "</b>";
+    document.getElementById("r-hint").textContent =
+      ok >= tot * 0.85 ? "掌握良好，可尝试动手实践。"
+      : ok >= tot * 0.5 ? "针对错题回看对应小节。"
+      : "答对不足一半，建议重读知识区。";
+    var r = document.getElementById("result");
+    r.classList.add("show");
+    r.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function maybeResult(){ if(allDone()) renderResult(); }
+
+  cards.forEach(function(c){
+    var ans = c.dataset.answer;
+    c.querySelector(".check").addEventListener("click", function(){
+      var p = sel(c), ok = (p === ans);
+      c._ok = ok; markDone(c);
+      fb(c, ok, null, fmt(ans) + "　你选：" + (p || "未作答"));
+      maybeResult();
+    });
+    c.querySelector(".peek").addEventListener("click", function(){
+      markDone(c);
+      fb(c, true, "mid", fmt(ans) + "　你选：" + (sel(c) || "未作答"));
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+        var inp = li.querySelector("input");
+        if (inp && ans.indexOf(String.fromCharCode(65 + i)) > -1) li.style.background = "#eef3fa";
+      });
+      maybeResult();
+    });
+  });
+  function fmt(a){ return a.length > 1 ? a.split("").join("、") : a; }
+
+  var cur = 0;
+  document.getElementById("prev").addEventListener("click", function(){ if(cur>0){ cur--; show(cur); } });
+  document.getElementById("next").addEventListener("click", function(){ if(cur<cards.length-1){ cur++; show(cur); } });
+  document.getElementById("again").addEventListener("click", function(){
+    cards.forEach(function(c){
+      c._done = false; c._ok = false;
+      [].slice.call(c.querySelectorAll("input")).forEach(function(i){ i.checked = false; });
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li){ li.style.background = ""; });
+      var f = c.querySelector(".feedback"); f.className = "feedback"; f.innerHTML = "";
+    });
+    document.getElementById("result").classList.remove("show");
+    cur = 0; show(cur);
+  });
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  show(0);
+})();
+</script>
+</body>
+</html>

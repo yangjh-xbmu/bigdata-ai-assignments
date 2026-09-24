@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运算符 · 图解</title>
+<style>
+  :root{
+    --ink:#262b33; --ink-2:#5c6572; --ink-3:#8b93a0;
+    --line:#cfd5dd; --line-soft:#e4e8ee;
+    --paper:#fff; --tint:#f2f5f9;
+    --accent:#1d4e89; --accent-soft:#e3ebf5;
+    --good:#2e7d57; --bad:#b0432e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.7;}
+  svg text{font-family:inherit;}
+  .page{max-width:800px;margin:0 auto;padding:34px 24px 80px;}
+  header{padding-bottom:16px;border-bottom:1px solid var(--line-soft);}
+  h1{font-size:25px;margin:0 0 8px}
+  .tagline{color:var(--ink-2);font-size:14.5px;margin:0}
+  .crumb{margin:0 0 10px;font-size:13px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  section.learn{margin:28px 0 6px}
+  .lno{font-family:Consolas,monospace;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 7px;margin-right:8px}
+  h3{font-size:17px;margin:0 0 4px;font-weight:700}
+  figure{margin:0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-size:13.5px;color:var(--ink-2);background:var(--tint);border-radius:8px;padding:6px 13px;max-width:80%;margin-top:4px}
+  .wrap{background:var(--tint);border:1px solid var(--line-soft);border-radius:14px;padding:8px 6px 4px}
+  .quiz-head{margin-top:44px;border-bottom:1px solid var(--line-soft);padding-bottom:10px}
+  .qcard{display:none;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .qcard.on{display:block;animation:qi .18s ease}
+  @keyframes qi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .q-no{font-size:12px;color:var(--ink-3);font-weight:600}
+  .q-type{font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 6px;margin-right:8px}
+  .q-stem{font-size:15.5px;margin:6px 0 10px}
+  .opts{list-style:none;margin:0;padding:0}
+  .opts li{display:flex;gap:9px;align-items:flex-start;padding:5px 8px;border-radius:8px}
+  .opts li:hover{background:var(--tint)}
+  .opts label{flex:1;cursor:pointer;font-size:14.5px}
+  .opts label code{margin-left:3px}
+  .opts .ltr{display:inline-block;width:18px}
+  .opts input{accent-color:var(--accent);margin-top:6px}
+  .ltr{font-family:Consolas,monospace;font-weight:700;color:var(--ink-2);min-width:15px}
+  code{font-family:Consolas,monospace;font-size:14px;background:var(--tint);border:1px solid var(--line-soft);border-radius:4px;padding:0 4px}
+  .qbar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  button{font-family:inherit;font-size:13px;padding:5px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--accent);background:#fff;color:var(--accent)}
+  button:hover{background:var(--accent-soft)}
+  button.primary{background:var(--accent);color:#fff}
+  button.primary:hover{background:#163c69}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .feedback{display:none;margin-top:10px;padding:9px 13px;border-radius:8px;font-size:14px}
+  .feedback.show{display:block}
+  .feedback.good{background:#edf5f0;border:1px solid #cfe2d6;color:var(--good)}
+  .feedback.bad{background:#faf0ed;border:1px solid #ead2cb;color:var(--bad)}
+  .feedback.mid{background:var(--tint);border:1px solid var(--line);color:var(--ink-2)}
+  .feedback .why{color:var(--ink-2);border-top:1px dashed var(--line);padding-top:6px;margin-top:6px}
+  .result-screen{display:none;border:1px solid var(--accent);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .result-screen.show{display:block}
+  .why-src{display:none}
+  .lesson-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:34px;padding-top:14px;border-top:1px solid var(--line-soft);font-size:13.5px}
+  .lesson-nav .dim{color:var(--ink-3)}
+  footer{margin-top:18px;color:var(--ink-3);font-size:12px;border-top:1px solid var(--line-soft);padding-top:10px}
+  @media(max-width:560px){figcaption{max-width:100%}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 z" fill="#1d4e89"/></marker>
+  <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 z" fill="#b4b2a9"/></marker>
+  <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 z" fill="#b0432e"/></marker>
+</defs></svg>
+
+<div class="page">
+
+  <header>
+    <p class="crumb"><a href="index.html">← 返回学习资料目录</a></p>
+    <h1>01b 运算符</h1>
+    <p class="tagline">学完能看懂任何一个表达式，并说出它每一步怎么算 · 建议用时 20 分钟</p>
+  </header>
+
+  <section class="learn">
+    <h3><span class="lno">01</span>按「要几个数」分成五类</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 300" role="img" aria-label="运算符按操作数个数与用途分成五类">
+        <rect x="20" y="26" width="228" height="120" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="40" y="52" font-size="14" fill="#1d4e89">算术</text>
+        <text x="40" y="78" font-size="13" fill="#262b33">+ - * / // % **</text>
+        <text x="40" y="102" font-size="12" fill="#5c6572">算出一个数值</text>
+        <text x="40" y="126" font-size="12" fill="#8b93a0">2 个数 → 1 个值</text>
+
+        <rect x="266" y="26" width="228" height="120" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="286" y="52" font-size="14" fill="#1d4e89">比较</text>
+        <text x="286" y="78" font-size="13" fill="#262b33">== != &gt; &lt; &gt;= &lt;=</text>
+        <text x="286" y="102" font-size="12" fill="#5c6572">算出一个真假</text>
+        <text x="286" y="126" font-size="12" fill="#8b93a0">2 个数 → True/False</text>
+
+        <rect x="512" y="26" width="228" height="120" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="532" y="52" font-size="14" fill="#1d4e89">逻辑</text>
+        <text x="532" y="78" font-size="13" fill="#262b33">and or not</text>
+        <text x="532" y="102" font-size="12" fill="#5c6572">把真假连起来</text>
+        <text x="532" y="126" font-size="12" fill="#8b93a0">真假 → 真假</text>
+
+        <rect x="20" y="162" width="352" height="120" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="40" y="188" font-size="14" fill="#1d4e89">赋值</text>
+        <text x="40" y="214" font-size="13" fill="#262b33">=  +=  -=  *=  /=  //=  %=  **=</text>
+        <text x="40" y="238" font-size="12" fill="#5c6572">把结果写回变量，是语句不是表达式</text>
+        <text x="40" y="262" font-size="12" fill="#8b93a0">不是「等于」，是「存进去」</text>
+
+        <rect x="388" y="162" width="352" height="120" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="408" y="188" font-size="14" fill="#1d4e89">成员 / 身份</text>
+        <text x="408" y="214" font-size="13" fill="#262b33">in  not in　is  is not</text>
+        <text x="408" y="238" font-size="12" fill="#5c6572">在不在里面 · 是不是同一个东西</text>
+        <text x="408" y="262" font-size="12" fill="#8b93a0">两者都吐 True/False</text>
+      </svg>
+    </div>
+    <figcaption>看任何一个表达式，先认符号属于哪一类——类别决定它吐出数值还是真假。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">02</span>算术：<code>/</code> 永远是小数，<code>//</code> 才是整除</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 262" role="img" aria-label="除号与整除号在小数上开始分家">
+        <text x="36" y="30" font-size="12" fill="#8b93a0">7 和 2 两个都能整除，看不出差别</text>
+        <rect x="36" y="42" width="120" height="40" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="96" y="68" text-anchor="middle" font-size="15" fill="#262b33">7 / 2</text>
+        <line x1="164" y1="62" x2="204" y2="62" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="212" y="42" width="120" height="40" rx="9" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="272" y="68" text-anchor="middle" font-size="15" fill="#1d4e89">3.5</text>
+        <rect x="352" y="42" width="120" height="40" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="412" y="68" text-anchor="middle" font-size="15" fill="#262b33">7 // 2</text>
+        <line x1="480" y1="62" x2="520" y2="62" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="528" y="42" width="120" height="40" rx="9" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="588" y="68" text-anchor="middle" font-size="15" fill="#1d4e89">3</text>
+
+        <text x="36" y="122" font-size="12" fill="#b0432e">换成不能整除的 8 和 3，就分家了</text>
+        <rect x="36" y="134" width="120" height="40" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="96" y="160" text-anchor="middle" font-size="15" fill="#262b33">8 / 3</text>
+        <line x1="164" y1="154" x2="204" y2="154" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="212" y="134" width="120" height="40" rx="9" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="272" y="160" text-anchor="middle" font-size="14" fill="#1d4e89">2.6666…</text>
+        <rect x="352" y="134" width="120" height="40" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="412" y="160" text-anchor="middle" font-size="15" fill="#262b33">8 // 3</text>
+        <line x1="480" y1="154" x2="520" y2="154" stroke="#b0432e" stroke-width="1.5" marker-end="url(#arR)"/>
+        <rect x="528" y="134" width="120" height="40" rx="9" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="588" y="160" text-anchor="middle" font-size="15" fill="#b0432e">2</text>
+
+        <rect x="36" y="196" width="612" height="48" rx="10" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="58" y="226" font-size="13" fill="#262b33">负数注意：-7 // 2 得 -4 不是 -3 —— // 是向下取整，往数轴左边走。</text>
+      </svg>
+    </div>
+    <figcaption>真除法 <code>/</code> 结果一律是 float；整除 <code>//</code> 丢掉小数部分，且是向下取整不是抹零。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">03</span><code>%</code> 不是百分号，是「余数」</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 250" role="img" aria-label="取模运算得到余数以及奇偶判断">
+        <rect x="36" y="36" width="330" height="196" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="56" y="62" font-size="14" fill="#1d4e89">17 除以 5 拆开看</text>
+        <rect x="56" y="78" width="140" height="42" rx="9" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="126" y="105" text-anchor="middle" font-size="14" fill="#1d4e89">商 = 17 // 5</text>
+        <rect x="208" y="78" width="138" height="42" rx="9" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="277" y="105" text-anchor="middle" font-size="14" fill="#1d4e89">余 = 17 % 5</text>
+        <line x1="126" y1="120" x2="126" y2="152" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <line x1="277" y1="120" x2="277" y2="152" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="56" y="158" width="140" height="42" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="126" y="185" text-anchor="middle" font-size="15" fill="#262b33">3</text>
+        <rect x="208" y="158" width="138" height="42" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="277" y="185" text-anchor="middle" font-size="15" fill="#262b33">2</text>
+
+        <rect x="396" y="36" width="330" height="196" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="416" y="62" font-size="14" fill="#1d4e89">最常用的一招：判奇偶</text>
+        <rect x="416" y="78" width="290" height="42" rx="9" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="440" y="105" font-size="13" fill="#262b33">n % 2 == 0</text>
+        <rect x="416" y="130" width="140" height="42" rx="9" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="486" y="157" text-anchor="middle" font-size="13" fill="#2e7d57">余 0 → 偶数</text>
+        <rect x="566" y="130" width="140" height="42" rx="9" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="636" y="157" text-anchor="middle" font-size="13" fill="#b0432e">余 1 → 奇数</text>
+        <text x="416" y="202" font-size="12" fill="#8b93a0">还能取最后几位：n % 10 得个位，n % 100 得末两位</text>
+      </svg>
+    </div>
+    <figcaption><code>17 % 5 = 2</code>：除不尽剩下的那点。判奇偶、取个位、按周期分组全靠它。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">04</span>幂运算，以及 <code>*</code> <code>+</code> 的第二种含义</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 322" role="img" aria-label="幂运算与字符串列表上的星号加号">
+        <rect x="36" y="30" width="300" height="90" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="56" y="56" font-size="13" fill="#5c6572">幂：乘方</text>
+        <rect x="56" y="66" width="110" height="38" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="111" y="91" text-anchor="middle" font-size="14" fill="#262b33">2 ** 10</text>
+        <line x1="174" y1="85" x2="204" y2="85" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="212" y="66" width="110" height="38" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="267" y="91" text-anchor="middle" font-size="14" fill="#1d4e89">1024</text>
+
+        <rect x="396" y="30" width="330" height="90" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="416" y="56" font-size="13" fill="#5c6572">* 在字符串上 = 重复</text>
+        <rect x="416" y="66" width="130" height="38" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="481" y="91" text-anchor="middle" font-size="14" fill="#262b33">"-" * 5</text>
+        <line x1="554" y1="85" x2="584" y2="85" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="592" y="66" width="120" height="38" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="652" y="91" text-anchor="middle" font-size="14" fill="#1d4e89">"-----"</text>
+
+        <text x="36" y="152" font-size="12" fill="#8b93a0">列表上同理，但两个列表相加是拼接，不是逐项相加</text>
+
+        <rect x="36" y="168" width="150" height="62" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="111" y="205" text-anchor="middle" font-size="14" fill="#262b33">[1, 2] * 3</text>
+        <line x1="194" y1="199" x2="228" y2="199" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="236" y="168" width="200" height="62" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="336" y="205" text-anchor="middle" font-size="14" fill="#1d4e89">[1,2,1,2,1,2]</text>
+
+        <rect x="36" y="244" width="150" height="62" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="111" y="281" text-anchor="middle" font-size="14" fill="#262b33">[1, 2] + [3]</text>
+        <line x1="194" y1="275" x2="228" y2="275" stroke="#b0432e" stroke-width="1.5" marker-end="url(#arR)"/>
+        <rect x="236" y="244" width="200" height="62" rx="10" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="336" y="274" text-anchor="middle" font-size="14" fill="#b0432e">[1, 2, 3]</text>
+        <text x="336" y="294" text-anchor="middle" font-size="11.5" fill="#b0432e">拼接，不是 [4, 2]</text>
+      </svg>
+    </div>
+    <figcaption>符号的含义随两边的类型变：数字上是算，字符串/列表上是重复与拼接。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">05</span>比较：<code>=</code> 是存进去，<code>==</code> 才是问等于吗</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 270" role="img" aria-label="等号与双等号的区别">
+        <rect x="30" y="30" width="330" height="210" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="50" y="58" font-size="14" fill="#b0432e">= 赋值（把值存进名字）</text>
+        <rect x="50" y="74" width="290" height="44" rx="9" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="195" y="102" text-anchor="middle" font-size="14" fill="#b0432e">age = 18</text>
+        <text x="50" y="146" font-size="12.5" fill="#5c6572">执行后 age 里装的就是 18</text>
+        <text x="50" y="172" font-size="12.5" fill="#5c6572">左边必须是变量名</text>
+        <text x="50" y="198" font-size="12.5" fill="#5c6572">写成 18 = age 直接报语法错误</text>
+
+        <rect x="400" y="30" width="330" height="210" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="420" y="58" font-size="14" fill="#1d4e89">== 比较（问是不是相等）</text>
+        <rect x="420" y="74" width="290" height="44" rx="9" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="565" y="102" text-anchor="middle" font-size="14" fill="#1d4e89">age == 18</text>
+        <text x="420" y="146" font-size="12.5" fill="#5c6572">执行后得到一个 True 或 False</text>
+        <text x="420" y="172" font-size="12.5" fill="#5c6572">两边都可以是表达式</text>
+        <text x="420" y="198" font-size="12.5" fill="#5c6572">比较本身不改动任何变量</text>
+      </svg>
+    </div>
+    <figcaption><code>=</code> 改状态，<code>==</code> 出真假。一件事分给两个符号，是 Python 逼你写清楚。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">06</span><code>in</code>/<code>is</code>：在不在里面，是不是同一个</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 240" role="img" aria-label="in 判断包含，is 判断同一个对象，与 == 的区别">
+        <rect x="30" y="30" width="330" height="180" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="50" y="56" font-size="14" fill="#1d4e89">in · 在不在里面</text>
+        <rect x="50" y="72" width="290" height="40" rx="9" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="195" y="97" text-anchor="middle" font-size="13" fill="#262b33">"a" in ["a", "b"]</text>
+        <line x1="195" y1="112" x2="195" y2="140" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="110" y="146" width="170" height="40" rx="9" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="195" y="171" text-anchor="middle" font-size="13" fill="#2e7d57">True</text>
+
+        <rect x="400" y="30" width="330" height="180" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="420" y="56" font-size="14" fill="#1d4e89">is · 是不是同一个</text>
+        <rect x="420" y="72" width="290" height="40" rx="9" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="565" y="97" text-anchor="middle" font-size="13" fill="#262b33">[] == []　→ True</text>
+        <rect x="420" y="120" width="290" height="40" rx="9" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="565" y="145" text-anchor="middle" font-size="13" fill="#262b33">[] is []　→ False</text>
+        <text x="420" y="186" font-size="12" fill="#8b93a0">== 比内容，is 比是不是同一个对象</text>
+      </svg>
+    </div>
+    <figcaption>两个空列表内容相同（<code>==</code> 为真）却是两个不同对象（<code>is</code> 为假）。判断「是不是空」写 <code>if not x:</code>。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">07</span><code>and / or / not</code>：真值表</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 262" role="img" aria-label="and or not 的真值表">
+        <rect x="30" y="30" width="220" height="212" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="140" y="54" text-anchor="middle" font-size="14" fill="#1d4e89">and · 全真才真</text>
+        <rect x="50" y="66" width="86" height="34" rx="7" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="93" y="88" text-anchor="middle" font-size="12.5" fill="#262b33">True+True</text>
+        <rect x="144" y="66" width="86" height="34" rx="7" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="187" y="88" text-anchor="middle" font-size="12.5" fill="#2e7d57">True</text>
+        <rect x="50" y="110" width="86" height="34" rx="7" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="93" y="132" text-anchor="middle" font-size="12.5" fill="#262b33">True+False</text>
+        <rect x="144" y="110" width="86" height="34" rx="7" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="187" y="132" text-anchor="middle" font-size="12.5" fill="#b0432e">False</text>
+        <rect x="50" y="154" width="86" height="34" rx="7" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="93" y="176" text-anchor="middle" font-size="12.5" fill="#262b33">False+False</text>
+        <rect x="144" y="154" width="86" height="34" rx="7" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="187" y="176" text-anchor="middle" font-size="12.5" fill="#b0432e">False</text>
+        <text x="50" y="216" font-size="12" fill="#8b93a0">有一边假就假</text>
+
+        <rect x="270" y="30" width="220" height="212" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="380" y="54" text-anchor="middle" font-size="14" fill="#1d4e89">or · 一真就真</text>
+        <rect x="290" y="66" width="86" height="34" rx="7" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="333" y="88" text-anchor="middle" font-size="12.5" fill="#262b33">True+True</text>
+        <rect x="384" y="66" width="86" height="34" rx="7" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="427" y="88" text-anchor="middle" font-size="12.5" fill="#2e7d57">True</text>
+        <rect x="290" y="110" width="86" height="34" rx="7" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="333" y="132" text-anchor="middle" font-size="12.5" fill="#262b33">True+False</text>
+        <rect x="384" y="110" width="86" height="34" rx="7" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="427" y="132" text-anchor="middle" font-size="12.5" fill="#2e7d57">True</text>
+        <rect x="290" y="154" width="86" height="34" rx="7" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="333" y="176" text-anchor="middle" font-size="12.5" fill="#262b33">False+False</text>
+        <rect x="384" y="154" width="86" height="34" rx="7" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="427" y="176" text-anchor="middle" font-size="12.5" fill="#b0432e">False</text>
+        <text x="290" y="216" font-size="12" fill="#8b93a0">有一边真就真</text>
+
+        <rect x="510" y="30" width="220" height="212" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <text x="620" y="54" text-anchor="middle" font-size="14" fill="#1d4e89">not · 取反</text>
+        <rect x="530" y="66" width="86" height="34" rx="7" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="573" y="88" text-anchor="middle" font-size="12.5" fill="#262b33">not True</text>
+        <rect x="624" y="66" width="86" height="34" rx="7" fill="#faf0ed" stroke="#b0432e"/>
+        <text x="667" y="88" text-anchor="middle" font-size="12.5" fill="#b0432e">False</text>
+        <rect x="530" y="110" width="86" height="34" rx="7" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="573" y="132" text-anchor="middle" font-size="12.5" fill="#262b33">not False</text>
+        <rect x="624" y="110" width="86" height="34" rx="7" fill="#edf5f0" stroke="#2e7d57"/>
+        <text x="667" y="132" text-anchor="middle" font-size="12.5" fill="#2e7d57">True</text>
+        <text x="530" y="176" font-size="12" fill="#8b93a0">0、空串、空列表、None 都算假</text>
+      </svg>
+    </div>
+    <figcaption>这三个运算只看真假，不看数值。写条件判断时它们是拼装零件。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">08</span>优先级：先乘除后加减，不确定就加括号</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 268" role="img" aria-label="运算符优先级顺序以及加括号的结果">
+        <text x="36" y="42" font-size="13" fill="#8b93a0">优先级从高到低</text>
+        <rect x="36" y="54" width="130" height="40" rx="9" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="101" y="80" text-anchor="middle" font-size="13" fill="#1d4e89">**</text>
+        <rect x="180" y="54" width="170" height="40" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="265" y="80" text-anchor="middle" font-size="13" fill="#262b33">* / // %</text>
+        <rect x="364" y="54" width="170" height="40" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="449" y="80" text-anchor="middle" font-size="13" fill="#262b33">+ -</text>
+        <rect x="548" y="54" width="180" height="40" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="638" y="80" text-anchor="middle" font-size="13" fill="#262b33">比较 == &gt; &lt;</text>
+        <rect x="36" y="106" width="340" height="40" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="206" y="132" text-anchor="middle" font-size="13" fill="#262b33">not → and → or</text>
+        <text x="400" y="132" font-size="12.5" fill="#5c6572">同级的从左往右</text>
+
+        <rect x="36" y="162" width="230" height="86" rx="10" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="151" y="192" text-anchor="middle" font-size="14" fill="#262b33">2 + 3 * 4</text>
+        <line x1="151" y1="204" x2="151" y2="222" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="151" y="240" text-anchor="middle" font-size="14" fill="#1d4e89">14（先算 3*4）</text>
+
+        <rect x="290" y="162" width="230" height="86" rx="10" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="405" y="192" text-anchor="middle" font-size="14" fill="#262b33">(2 + 3) * 4</text>
+        <line x1="405" y1="204" x2="405" y2="222" stroke="#b0432e" stroke-width="1.5" marker-end="url(#arR)"/>
+        <text x="405" y="240" text-anchor="middle" font-size="14" fill="#b0432e">20（括号改顺序）</text>
+
+        <rect x="544" y="162" width="184" height="86" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="636" y="200" text-anchor="middle" font-size="13" fill="#5c6572">拿不准</text>
+        <text x="636" y="224" text-anchor="middle" font-size="13" fill="#5c6572">就加括号</text>
+      </svg>
+    </div>
+    <figcaption>括号是唯一能改顺序的东西。宁可多写一层括号，也别指望读代码的人背优先级表。</figcaption>
+  </section>
+
+  <section class="learn">
+    <h3><span class="lno">09</span>实战：用 <code>//</code> 与 <code>%</code> 做单位换算</h3>
+    <div class="wrap">
+      <svg viewBox="0 0 760 250" role="img" aria-label="把秒数换算成时分秒">
+        <rect x="36" y="36" width="200" height="52" rx="10" fill="#fff" stroke="#cfd5dd"/>
+        <text x="136" y="69" text-anchor="middle" font-size="15" fill="#262b33">total = 3725</text>
+        <text x="136" y="110" text-anchor="middle" font-size="12" fill="#8b93a0">秒</text>
+
+        <line x1="246" y1="62" x2="300" y2="62" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="308" y="30" width="200" height="64" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="408" y="58" text-anchor="middle" font-size="13" fill="#1d4e89">3725 // 3600</text>
+        <text x="408" y="80" text-anchor="middle" font-size="13" fill="#1d4e89">= 1 小时</text>
+
+        <line x1="408" y1="94" x2="408" y2="126" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="308" y="132" width="200" height="64" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="408" y="160" text-anchor="middle" font-size="13" fill="#1d4e89">(3725 % 3600) // 60</text>
+        <text x="408" y="182" text-anchor="middle" font-size="13" fill="#1d4e89">= 2 分</text>
+
+        <line x1="408" y1="196" x2="408" y2="212" stroke="#1d4e89" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="308" y="212" width="200" height="34" rx="9" fill="#fff" stroke="#cfd5dd"/>
+        <text x="408" y="235" text-anchor="middle" font-size="13" fill="#262b33">3725 % 60 = 5 秒</text>
+
+        <rect x="536" y="30" width="192" height="216" rx="12" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <text x="632" y="60" text-anchor="middle" font-size="12.5" fill="#5c6572">先拿够整份的</text>
+        <text x="632" y="86" text-anchor="middle" font-size="12.5" fill="#5c6572">// 取出整份</text>
+        <text x="632" y="112" text-anchor="middle" font-size="12.5" fill="#5c6572">% 取出剩下的</text>
+        <text x="632" y="152" text-anchor="middle" font-size="15" fill="#1d4e89">1:02:05</text>
+        <text x="632" y="182" text-anchor="middle" font-size="12" fill="#8b93a0">同一套路</text>
+        <text x="632" y="204" text-anchor="middle" font-size="12" fill="#8b93a0">也能拆元角分</text>
+      </svg>
+    </div>
+    <figcaption>「取整份 + 取余数」是同一套动作反复做：每往下一级就 <code>//</code> 一次、<code>%</code> 一次。</figcaption>
+  </section>
+
+  <h2 class="quiz-head">分级自测</h2>
+  <p style="color:var(--ink-3);font-size:13.5px">
+    三级递进：概念(1) → 辨析(2) → 应用(3)。题目一道一道出：先自己选，再「检查本题」；全部作答后自动出成绩。
+  </p>
+
+  <div id="qdeck">
+
+    <div class="qcard" data-lvl="1" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem"><code>17 % 5</code> 的结果是多少？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q1"><span class="ltr">A</span>3</label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">B</span>2</label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">C</span>3.4</label></li>
+        <li><label><input type="radio" name="q1"><span class="ltr">D</span>0.2</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">% 求余数：17 里能装 3 个 5，剩 2。商是 17 // 5 = 3，余数是 17 % 5 = 2。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="C">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem"><code>7 / 2</code> 的结果是什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q2"><span class="ltr">A</span><code>3</code></label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">B</span><code>3.5</code>，类型是 int</label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">C</span><code>3.5</code>，类型是 float</label></li>
+        <li><label><input type="radio" name="q2"><span class="ltr">D</span>报错</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">Python 3 里 / 是真除法，结果一律是 float；想要整除用 //。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="D">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem"><code>2 ** 10</code> 的结果是多少？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q3"><span class="ltr">A</span>20</label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">B</span>100</label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">C</span>512</label></li>
+        <li><label><input type="radio" name="q3"><span class="ltr">D</span>1024</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">** 是乘方，2 的 10 次方等于 1024，不是 2 乘以 10。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="1" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 1 级 · 概念</span></p>
+      <p class="q-stem">下面哪一句会把 <code>score</code> 变大 10 之后再存回它自己？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q4"><span class="ltr">A</span><code>score += 10</code></label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">B</span><code>score == 10</code></label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">C</span><code>score + 10</code></label></li>
+        <li><label><input type="radio" name="q4"><span class="ltr">D</span><code>10 = score</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">+= 是「加完再存回去」；== 只出真假；score + 10 算完就丢，没存回变量；D 是语法错误。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="C">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem"><code>-7 // 2</code> 的结果是多少？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q5"><span class="ltr">A</span>-3</label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">B</span>-3.5</label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">C</span>-4</label></li>
+        <li><label><input type="radio" name="q5"><span class="ltr">D</span>-2</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">// 是向下取整，往数轴左边走：-3.5 向下的整数是 -4，不是抹掉小数位得 -3。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem"><code>"ab" * 2</code> 和 <code>[1, 2] + [3]</code> 分别得到什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q6"><span class="ltr">A</span><code>"abab"</code> 和 <code>[4, 2]</code></label></li>
+        <li><label><input type="radio" name="q6"><span class="ltr">B</span><code>"abab"</code> 和 <code>[1, 2, 3]</code></label></li>
+        <li><label><input type="radio" name="q6"><span class="ltr">C</span>两句都报错</label></li>
+        <li><label><input type="radio" name="q6"><span class="ltr">D</span><code>"ab2"</code> 和 <code>[1, 2, 3]</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">同一个 * 在字符串上是重复；+ 在列表上是拼接，不是把对应位置相加。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="A">
+      <p><span class="q-type">单选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem">某人写下 <code>avg = 0.1 + 0.2</code> 后判断 <code>if avg == 0.3:</code>，结果条件不成立。原因是什么？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q7"><span class="ltr">A</span>二进制浮点无法精确表示 0.1 与 0.2，相加后是 0.30000000000000004</label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">B</span>== 不能用来比较 float，只能用 is</label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">C</span>要先 <code>import math</code> 才能做小数加法</label></li>
+        <li><label><input type="radio" name="q7"><span class="ltr">D</span>0.1 和 0.2 都是字符串，加号在拼接</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">浮点存储精度问题，不是 bug。比较小数用容差：<code>abs(avg - 0.3) &lt; 1e-9</code>。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="2" data-answer="ABD">
+      <p><span class="q-type">多选</span><span class="q-no">第 2 级 · 辨析</span></p>
+      <p class="q-stem">关于 <code>and</code> / <code>or</code> / <code>not</code>，下面哪些说法是对的？</p>
+      <ul class="opts">
+        <li><label><input type="checkbox" name="q8"><span class="ltr">A</span><code>True and False</code> 得 False</label></li>
+        <li><label><input type="checkbox" name="q8"><span class="ltr">B</span><code>False or True</code> 得 True</label></li>
+        <li><label><input type="checkbox" name="q8"><span class="ltr">C</span><code>5 and 3</code> 会报错，因为不是布尔值</label></li>
+        <li><label><input type="checkbox" name="q8"><span class="ltr">D</span><code>not ""</code> 得 True，因为空字符串算假</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">逻辑运算要求的是「真值」，任何对象都能参与判断：0、""、[]、None 都算假，非空非零算真。C 不会报错。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">只有能被 4 整除、并且不能被 100 整除的年份才是闰年（能被 400 整除的也算）。下面哪个条件写对了？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q9"><span class="ltr">A</span><code>y % 4 == 0 and y % 100 != 0</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">B</span><code>y % 4 == 0 and (y % 100 != 0 or y % 400 == 0)</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">C</span><code>y / 4 == 0 or y / 100 != 0</code></label></li>
+        <li><label><input type="radio" name="q9"><span class="ltr">D</span><code>y % 4 = 0 and y % 100 != 0</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">A 漏了「能被 400 整除」的例外（2000 年是闰年却被排除）；C 用 / 得到的是小数，永远不等于 0；D 把 == 写成了 = ，语法错误。括号在 or 与 and 混用时不能省。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="C">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">要把 3725 秒换算成「1 小时 2 分 5 秒」，依次该怎么算？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q10"><span class="ltr">A</span>3725 / 3600、3725 / 60、3725 % 60</label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">B</span>3725 % 3600、3725 // 60、3725 % 60</label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">C</span>3725 // 3600、(3725 % 3600) // 60、3725 % 60</label></li>
+        <li><label><input type="radio" name="q10"><span class="ltr">D</span>3725 // 60、3725 % 60、3725 // 3600</label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">先用 // 取整份得小时；再对 3600 取余拿到剩下的 125 秒，除以 60 取整得分钟；最后 % 60 得秒数。每一级都是「先取整份、再取余」。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="D">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">页面上要输出「已选 3 件，共 45 元」，其中 <code>n = 3</code>、<code>price = 45.0</code>。下面哪一句会报错？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q11"><span class="ltr">A</span><code>print(f"已选 {n} 件，共 {price} 元")</code></label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">B</span><code>print("已选", n, "件，共", price, "元")</code></label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">C</span><code>print("已选 " + str(n) + " 件，共 " + str(price) + " 元")</code></label></li>
+        <li><label><input type="radio" name="q11"><span class="ltr">D</span><code>print("已选 " + n + " 件，共 " + price + " 元")</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">D 用 + 把字符串和 int 连起来，报 TypeError。要拼字符串，必须先 str() 转换，或者改用 f-string。</div>
+      <div class="feedback"></div>
+    </div>
+
+    <div class="qcard" data-lvl="3" data-answer="B">
+      <p><span class="q-type">单选</span><span class="q-no">第 3 级 · 应用</span></p>
+      <p class="q-stem">某人想在评分为 0 到 5 的列表里数出所有 5 分（满分）的个数，写成 <code>count = 0</code>，循环里 <code>if s == 5: count += 1</code>。有学生问：为什么不能写成 <code>if s = 5:</code>？</p>
+      <ul class="opts">
+        <li><label><input type="radio" name="q12"><span class="ltr">A</span>会报错，但只是语法糖问题，加个括号就好</label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">B</span>因为 = 是赋值，它会把 5 写进 s，而且要求左边是变量名，直接 SyntaxError</label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">C</span>因为 s 是 float，只能用 is 比较</label></li>
+        <li><label><input type="radio" name="q12"><span class="ltr">D</span>因为应该写 <code>if s &gt; 5:</code></label></li>
+      </ul>
+      <div class="qbar"><button class="check" type="button">检查本题</button><button class="peek" type="button">看答案</button></div>
+      <div class="why-src">= 是赋值语句不是判断；不写成 == 就得不到真假值，Python 直接拒绝执行。</div>
+      <div class="feedback"></div>
+    </div>
+
+  </div>
+
+  <div class="qbar" style="justify-content:space-between">
+    <button id="prev" type="button">← 上一题</button>
+    <button id="next" type="button">下一题 →</button>
+  </div>
+
+  <div class="result-screen" id="result">
+    <h3 style="margin:0 0 6px">成绩</h3>
+    <p id="r-txt"></p>
+    <p style="color:var(--ink-3);font-size:13px" id="r-hint"></p>
+    <button id="again" type="button">重新作答</button>
+  </div>
+
+  <nav class="lesson-nav">
+    <a href="01-variables-types-io.html">← 上一份：变量 · 类型 · 输入输出</a>
+    <a href="index.html">返回目录</a>
+    <a href="02-strings-lists.html">下一份：字符串 · 列表 →</a>
+  </nav>
+
+  <footer>图解学习资料 · 生成于 <span id="yr"></span></footer>
+</div>
+
+<script>
+(function(){
+  var cards = [].slice.call(document.querySelectorAll(".qcard"));
+  var deckTop = document.getElementById("qdeck").offsetTop;
+
+  cards.forEach(function(c){
+    [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+      var inp = li.querySelector("input");
+      if (inp) inp.value = String.fromCharCode(65 + i);
+    });
+  });
+
+  function sel(c){
+    var p = [];
+    [].slice.call(c.querySelectorAll("input")).forEach(function(i){ if(i.checked) p.push(i.value); });
+    return p.sort().join("");
+  }
+  function show(i){
+    cards.forEach(function(c, idx){ c.classList.toggle("on", idx === i); });
+    document.getElementById("prev").disabled = (i === 0);
+    document.getElementById("next").disabled = (i >= cards.length - 1);
+    window.scrollTo({ top: deckTop - 16, behavior: "smooth" });
+  }
+  function markDone(c){ if(!c._done){ c._done = true; } }
+  function allDone(){ return cards.every(function(c){ return c._done; }); }
+  function fb(c, ok, kind, extra){
+    var el = c.querySelector(".feedback");
+    el.className = "feedback show " + (kind || (ok ? "good" : "bad"));
+    var head = kind === "mid" ? "<b>参考答案</b>（看答案不计分）" : ok ? "<b>答对了 ✓</b>" : "<b>不对 ✗</b>";
+    el.innerHTML = head + "　答案：" + extra + '<div class="why">' + c.querySelector(".why-src").textContent + "</div>";
+  }
+  function renderResult(){
+    var per = {1:[0,0], 2:[0,0], 3:[0,0]};
+    cards.forEach(function(c){
+      var l = +c.dataset.lvl; per[l][0]++; if(c._ok) per[l][1]++;
+    });
+    var ok = per[1][1] + per[2][1] + per[3][1], tot = cards.length;
+    document.getElementById("r-txt").innerHTML =
+      "概念 " + per[1][1] + "/" + per[1][0] +
+      " · 辨析 " + per[2][1] + "/" + per[2][0] +
+      " · 应用 " + per[3][1] + "/" + per[3][0] +
+      "　<b>总计 " + ok + "/" + tot + "</b>";
+    document.getElementById("r-hint").textContent =
+      ok >= tot * 0.85 ? "掌握良好，可尝试动手实践。"
+      : ok >= tot * 0.5 ? "针对错题回看对应小节。"
+      : "答对不足一半，建议重读知识区。";
+    var r = document.getElementById("result");
+    r.classList.add("show");
+    r.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function maybeResult(){ if(allDone()) renderResult(); }
+
+  cards.forEach(function(c){
+    var ans = c.dataset.answer;
+    c.querySelector(".check").addEventListener("click", function(){
+      var p = sel(c), ok = (p === ans);
+      c._ok = ok; markDone(c);
+      fb(c, ok, null, fmt(ans) + "　你选：" + (p || "未作答"));
+      maybeResult();
+    });
+    c.querySelector(".peek").addEventListener("click", function(){
+      markDone(c);
+      fb(c, true, "mid", fmt(ans) + "　你选：" + (sel(c) || "未作答"));
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li, i){
+        var inp = li.querySelector("input");
+        if (inp && ans.indexOf(String.fromCharCode(65 + i)) > -1) li.style.background = "#eef3fa";
+      });
+      maybeResult();
+    });
+  });
+  function fmt(a){ return a.length > 1 ? a.split("").join("、") : a; }
+
+  var cur = 0;
+  document.getElementById("prev").addEventListener("click", function(){ if(cur>0){ cur--; show(cur); } });
+  document.getElementById("next").addEventListener("click", function(){ if(cur<cards.length-1){ cur++; show(cur); } });
+  document.getElementById("again").addEventListener("click", function(){
+    cards.forEach(function(c){
+      c._done = false; c._ok = false;
+      [].slice.call(c.querySelectorAll("input")).forEach(function(i){ i.checked = false; });
+      [].slice.call(c.querySelectorAll(".opts li")).forEach(function(li){ li.style.background = ""; });
+      var f = c.querySelector(".feedback"); f.className = "feedback"; f.innerHTML = "";
+    });
+    document.getElementById("result").classList.remove("show");
+    cur = 0; show(cur);
+  });
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  show(0);
+})();
+</script>
+</body>
+</html>

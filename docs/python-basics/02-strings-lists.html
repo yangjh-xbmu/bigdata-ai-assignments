@@ -41,6 +41,8 @@
   .opts li{display:flex;gap:9px;align-items:flex-start;padding:5px 8px;border-radius:8px}
   .opts li:hover{background:var(--tint)}
   .opts label{flex:1;cursor:pointer;font-size:14.5px}
+  .opts label code{margin-left:3px}
+  .opts .ltr{display:inline-block;width:18px}
   .opts input{accent-color:var(--accent);margin-top:6px}
   .ltr{font-family:Consolas,monospace;font-weight:700;color:var(--ink-2);min-width:15px}
   code{font-family:Consolas,monospace;font-size:14px;background:var(--tint);border:1px solid var(--line-soft);border-radius:4px;padding:0 4px}
@@ -99,7 +101,7 @@
         <rect x="490" y="58" width="110" height="80" rx="10" fill="#e3ebf5" stroke="#1d4e89"/>
         <text x="545" y="48" text-anchor="middle" font-size="14" fill="#5c6572">4</text>
         <text x="545" y="110" text-anchor="middle" font-size="24" fill="#1d4e89">面</text>
-        <text x="50" y="180" font-size="13" fill="#5c6572">第 0 个是「兰」，没有第 5 个——<code>s[4]</code> 才是「面」。</text>
+        <text x="50" y="180" font-size="13" fill="#5c6572">第 0 个是「兰」，没有第 5 个——s[4] 才是「面」。</text>
       </svg>
     </div>
     <figcaption>数位置从 0 数：<code>s[0]</code> 拿第一个字，<code>s[4]</code> 拿最后一个，下标越界会报错。</figcaption>
@@ -151,12 +153,12 @@
         <rect x="280" y="46" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
         <text x="308" y="73" text-anchor="middle" font-size="16" fill="#262b33">面</text>
 
-        <rect x="40" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
-        <text x="68" y="142" text-anchor="middle" font-size="16" fill="#262b33">兰</text>
-        <rect x="100" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
-        <text x="128" y="142" text-anchor="middle" font-size="16" fill="#262b33">州</text>
-        <rect x="160" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
-        <text x="188" y="142" text-anchor="middle" font-size="16" fill="#262b33">牛</text>
+        <rect x="40" y="115" width="56" height="44" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="68" y="142" text-anchor="middle" font-size="16" fill="#1d4e89">兰</text>
+        <rect x="100" y="115" width="56" height="44" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="128" y="142" text-anchor="middle" font-size="16" fill="#1d4e89">州</text>
+        <rect x="160" y="115" width="56" height="44" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
+        <text x="188" y="142" text-anchor="middle" font-size="16" fill="#1d4e89">牛</text>
         <rect x="220" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
         <text x="248" y="142" text-anchor="middle" font-size="16" fill="#262b33">肉</text>
         <rect x="280" y="115" width="56" height="44" rx="8" fill="#fff" stroke="#cfd5dd"/>
@@ -193,7 +195,7 @@
         <rect x="220" y="72" width="145" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
         <text x="292" y="94" text-anchor="middle" font-size="12" fill="#1d4e89">['a','b','c']</text>
 
-        <rect x="395" y="30" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <rect x="395" y="30" width="340" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
         <text x="415" y="58" font-size="14" fill="#1d4e89">join：把列表拼回串</text>
         <rect x="415" y="72" width="140" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
         <text x="485" y="94" text-anchor="middle" font-size="12" fill="#262b33">['a','b']</text>
@@ -209,7 +211,7 @@
         <rect x="225" y="187" width="120" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
         <text x="285" y="209" text-anchor="middle" font-size="13" fill="#1d4e89">hi</text>
 
-        <rect x="395" y="145" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <rect x="395" y="145" width="340" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
         <text x="415" y="173" font-size="14" fill="#1d4e89">replace：替换字符</text>
         <rect x="415" y="187" width="120" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
         <text x="475" y="209" text-anchor="middle" font-size="13" fill="#262b33">aba</text>
@@ -236,7 +238,7 @@
         <rect x="80" y="216" width="200" height="40" rx="10" fill="#faf0ed" stroke="#b0432e"/>
         <text x="180" y="241" text-anchor="middle" font-size="14" fill="#b0432e">报错 TypeError</text>
 
-        <rect x="400" y="40" width="350" height="230" rx="12" fill="#f2f5f9" stroke="#e4e8ee"/>
+        <rect x="400" y="40" width="330" height="230" rx="12" fill="#f2f5f9" stroke="#e4e8ee"/>
         <text x="420" y="66" font-size="15" fill="#2e7d57">列表：可以改</text>
         <rect x="470" y="84" width="210" height="40" rx="10" fill="#fff" stroke="#cfd5dd"/>
         <text x="575" y="109" text-anchor="middle" font-size="14" fill="#262b33">lst = ['兰','州']</text>
@@ -263,7 +265,7 @@
         <rect x="220" y="72" width="145" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
         <text x="292" y="94" text-anchor="middle" font-size="12" fill="#1d4e89">['a','b','c']</text>
 
-        <rect x="395" y="30" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <rect x="395" y="30" width="340" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
         <text x="415" y="58" font-size="14" fill="#1d4e89">remove：删指定值</text>
         <rect x="415" y="72" width="140" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
         <text x="485" y="94" text-anchor="middle" font-size="12" fill="#262b33">['a','b','c']</text>
@@ -279,7 +281,7 @@
         <rect x="225" y="187" width="120" height="34" rx="8" fill="#e3ebf5" stroke="#1d4e89"/>
         <text x="285" y="209" text-anchor="middle" font-size="12" fill="#1d4e89">['a','b']</text>
 
-        <rect x="395" y="145" width="345" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
+        <rect x="395" y="145" width="340" height="100" rx="12" fill="#fff" stroke="#cfd5dd"/>
         <text x="415" y="173" font-size="14" fill="#1d4e89">改某位：直接赋值</text>
         <rect x="415" y="187" width="120" height="34" rx="8" fill="#f2f5f9" stroke="#e4e8ee"/>
         <text x="475" y="209" text-anchor="middle" font-size="13" fill="#262b33">['a','b']</text>
@@ -551,7 +553,7 @@
   </div>
 
   <nav class="lesson-nav">
-    <a href="01-variables-types-io.html">← 上一份：变量 · 类型 · 输入输出</a>
+    <a href="01b-operators.html">← 上一份：运算符</a>
     <a href="index.html">返回目录</a>
     <a href="03-conditionals-loops.html">下一份：条件 · 循环 →</a>
   </nav>
